@@ -1,0 +1,78 @@
+name: quick_money
+description: "Quick Money - Money Investment and Reward Points Trading Application"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # iOS style icons
+  cupertino_icons: ^1.0.8
+  
+  # Animations and UI effects
+  flutter_animate: ^4.5.2
+  
+  # Typography
+  google_fonts: ^8.2.1
+  
+  # Navigation and routing
+  go_router: ^18.0.1
+  
+  # State management
+  flutter_riverpod: ^3.4.3
+  
+  # Relative time formatting
+  timeago: ^3.7.1
+  
+  # HTTP and network
+  http: ^1.6.0
+  dio: ^5.11.1
+  crypto: ^3.0.5
+  
+  # Internationalization and date/currency formatting
+  intl: ^0.20.3
+  
+  # Data visualization and charts
+  fl_chart: ^1.2.0
+  
+  # Lucide icons for modern UI
+  lucide_icons_flutter: ^3.1.20
+  
+  # Encrypted persistent local storage
+  flutter_secure_storage: ^11.2.0
+  
+  # Launch external URLs
+  url_launcher: ^6.3.3
+  
+  # OTP and PIN entry
+  pin_code_fields: ^10.1.1
+  
+  # App package info
+  package_info_plus: ^10.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#0F172A"
+  adaptive_icon_foreground: "assets/app_icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+
