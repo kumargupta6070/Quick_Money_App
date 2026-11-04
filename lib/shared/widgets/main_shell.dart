@@ -25,9 +25,21 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  int _lastIndex = 0;
-
   void _onTap(int index) {
+    if (index == widget.navigationShell.currentIndex) {
+      // Re-trigger animation on current tab without re-navigating
+      if (index == 0) {
+        ref.read(homeAnimationTriggerProvider.notifier).trigger();
+      } else if (index == 1) {
+        ref.read(buyRpAnimationTriggerProvider.notifier).trigger();
+      } else if (index == 2) {
+        ref.read(sellRpAnimationTriggerProvider.notifier).trigger();
+      } else if (index == 3) {
+        ref.read(mineAnimationTriggerProvider.notifier).trigger();
+      }
+      return;
+    }
+
     if (index == 0) {
       ref.read(homeAnimationTriggerProvider.notifier).trigger();
     } else if (index == 1) {
@@ -37,34 +49,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     } else if (index == 3) {
       ref.read(mineAnimationTriggerProvider.notifier).trigger();
     }
-    widget.navigationShell.goBranch(
-      index,
-      initialLocation: index == widget.navigationShell.currentIndex,
-    );
+    widget.navigationShell.goBranch(index, initialLocation: false);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentIndex = widget.navigationShell.currentIndex;
-
-    // Detect if user switched tabs via any navigation event to re-animate target tab
-    if (_lastIndex != currentIndex) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          if (currentIndex == 0) {
-            ref.read(homeAnimationTriggerProvider.notifier).trigger();
-          } else if (currentIndex == 1) {
-            ref.read(buyRpAnimationTriggerProvider.notifier).trigger();
-          } else if (currentIndex == 2) {
-            ref.read(sellRpAnimationTriggerProvider.notifier).trigger();
-          } else if (currentIndex == 3) {
-            ref.read(mineAnimationTriggerProvider.notifier).trigger();
-          }
-        }
-      });
-    }
-    _lastIndex = currentIndex;
 
     final activeColor = isDark
         ? const Color(0xFF38BDF8)

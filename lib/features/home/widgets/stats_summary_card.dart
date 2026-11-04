@@ -118,7 +118,7 @@ class StatsSummaryCard extends StatelessWidget {
               subtitle: 'Active today',
               trend: 'L1 Tier',
               index: 0,
-              onTap: () => context.push('/buy-rp'),
+              onTap: () => context.go('/buy-rp'),
             ),
             KpiCard(
               title: 'Buy Amount',
@@ -138,7 +138,7 @@ class StatsSummaryCard extends StatelessWidget {
               subtitle: 'Auto-return target',
               trend: '+₹49 return',
               index: 2,
-              onTap: () => context.push('/sell-rp'),
+              onTap: () => context.go('/sell-rp'),
             ),
             KpiCard(
               title: 'Total Revenue',

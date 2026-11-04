@@ -24,6 +24,15 @@ import '../../features/notification/screens/notification_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _shellNavigatorHome = GlobalKey<NavigatorState>(
+  debugLabel: 'shellHome',
+);
+final GlobalKey<NavigatorState> _shellNavigatorBuyRp =
+    GlobalKey<NavigatorState>(debugLabel: 'shellBuyRp');
+final GlobalKey<NavigatorState> _shellNavigatorSellRp =
+    GlobalKey<NavigatorState>(debugLabel: 'shellSellRp');
+final GlobalKey<NavigatorState> _shellNavigatorProfile =
+    GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
@@ -84,56 +93,48 @@ final GoRouter appRouter = GoRouter(
       branches: [
         // Tab 1: Home
         StatefulShellBranch(
+          navigatorKey: _shellNavigatorHome,
           routes: [
             GoRoute(
               path: '/home',
-              pageBuilder: (context, state) => PageTransitions.fade(
-                context: context,
-                state: state,
-                child: const HomeScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: HomeScreen()),
             ),
           ],
         ),
 
         // Tab 2: Buy RP
         StatefulShellBranch(
+          navigatorKey: _shellNavigatorBuyRp,
           routes: [
             GoRoute(
               path: '/buy-rp',
-              pageBuilder: (context, state) => PageTransitions.fade(
-                context: context,
-                state: state,
-                child: const BuyRpScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: BuyRpScreen()),
             ),
           ],
         ),
 
         // Tab 3: Sell RP
         StatefulShellBranch(
+          navigatorKey: _shellNavigatorSellRp,
           routes: [
             GoRoute(
               path: '/sell-rp',
-              pageBuilder: (context, state) => PageTransitions.fade(
-                context: context,
-                state: state,
-                child: const SellRpScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: SellRpScreen()),
             ),
           ],
         ),
 
         // Tab 4: Mine (Profile)
         StatefulShellBranch(
+          navigatorKey: _shellNavigatorProfile,
           routes: [
             GoRoute(
               path: '/profile',
-              pageBuilder: (context, state) => PageTransitions.fade(
-                context: context,
-                state: state,
-                child: const ProfileScreen(),
-              ),
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: ProfileScreen()),
             ),
           ],
         ),

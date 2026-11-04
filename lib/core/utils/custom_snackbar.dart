@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
 import '../theme/app_colors.dart';
 
 /// Quick Money Enterprise Custom SnackBar with rich dark/light mode aesthetics,
@@ -66,62 +67,68 @@ class CustomSnackBar {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: borderColor,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor.withValues(alpha: 0.18),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: shadowColor.withValues(alpha: 0.35),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  effectiveIcon,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  message,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.1,
+        content:
+            Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                ),
-              ),
-            ],
-          ),
-        )
-            .animate()
-            .slideY(begin: 0.5, end: 0, curve: Curves.easeOutCubic, duration: 400.ms)
-            .fade(duration: 400.ms),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: shadowColor.withValues(alpha: 0.18),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: iconBgColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: shadowColor.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          effectiveIcon,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .animate()
+                .slideY(
+                  begin: 0.5,
+                  end: 0,
+                  curve: Curves.easeOutCubic,
+                  duration: 400.ms,
+                )
+                .fade(duration: 400.ms),
         backgroundColor: Colors.transparent,
         elevation: 0,
         behavior: SnackBarBehavior.floating,
@@ -196,5 +203,195 @@ class CustomSnackBar {
       duration: duration,
     );
   }
-}
 
+  static OverlayEntry? _activeToast;
+
+  /// High-priority top toast rendered via rootOverlay so it floats above all
+  /// modal bottom sheets, dialogs, and navigation routes.
+  static void showTopToast({
+    required BuildContext context,
+    required String message,
+    IconData? icon,
+    bool isError = false,
+    bool isWarning = false,
+    bool isInfo = false,
+    Duration duration = const Duration(milliseconds: 2800),
+  }) {
+    _activeToast?.remove();
+    _activeToast = null;
+
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    // Determine colors and icon based on status
+    final List<Color> gradientColors;
+    final Color shadowColor;
+    final Color borderColor;
+    final IconData effectiveIcon;
+
+    if (isError) {
+      gradientColors = const [Color(0xFF991B1B), Color(0xFFEF4444)];
+      shadowColor = const Color(0xFFEF4444);
+      borderColor = const Color(0xFFFCA5A5).withValues(alpha: 0.40);
+      effectiveIcon = icon ?? Icons.error_outline_rounded;
+    } else if (isWarning) {
+      gradientColors = const [Color(0xFFB45309), Color(0xFFF59E0B)];
+      shadowColor = const Color(0xFFF59E0B);
+      borderColor = const Color(0xFFFDE68A).withValues(alpha: 0.45);
+      effectiveIcon = icon ?? Icons.warning_amber_rounded;
+    } else if (isInfo) {
+      gradientColors = const [Color(0xFF0369A1), Color(0xFF0284C7)];
+      shadowColor = const Color(0xFF0284C7);
+      borderColor = const Color(0xFFBAE6FD).withValues(alpha: 0.40);
+      effectiveIcon = icon ?? Icons.info_outline_rounded;
+    } else {
+      // Default Success
+      gradientColors = const [Color(0xFF065F46), Color(0xFF10B981)];
+      shadowColor = const Color(0xFF10B981);
+      borderColor = Colors.white.withValues(alpha: 0.35);
+      effectiveIcon = icon ?? Icons.check_circle_rounded;
+    }
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (ctx) {
+        final topPadding = MediaQuery.of(ctx).padding.top;
+        return Positioned(
+          top: topPadding + 14,
+          left: 16,
+          right: 16,
+          child: Material(
+            color: Colors.transparent,
+            child:
+                Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: gradientColors,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: borderColor, width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: shadowColor.withValues(alpha: 0.45),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.20),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              effectiveIcon,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              message,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 250.ms)
+                    .slideY(begin: -0.4, end: 0, curve: Curves.easeOutCubic),
+          ),
+        );
+      },
+    );
+
+    _activeToast = entry;
+    overlay.insert(entry);
+
+    Future.delayed(duration, () {
+      if (_activeToast == entry) {
+        entry.remove();
+        _activeToast = null;
+      }
+    });
+  }
+
+  /// High-priority top warning alert floating above modals, bottom sheets and dialogs
+  static void showTopWarning({
+    required BuildContext context,
+    required String message,
+    IconData? icon,
+    Duration duration = const Duration(milliseconds: 2800),
+  }) {
+    showTopToast(
+      context: context,
+      message: message,
+      isWarning: true,
+      icon: icon ?? Icons.warning_amber_rounded,
+      duration: duration,
+    );
+  }
+
+  /// High-priority top error alert floating above modals, bottom sheets and dialogs
+  static void showTopError({
+    required BuildContext context,
+    required String message,
+    IconData? icon,
+    Duration duration = const Duration(milliseconds: 2800),
+  }) {
+    showTopToast(
+      context: context,
+      message: message,
+      isError: true,
+      icon: icon ?? Icons.error_outline_rounded,
+      duration: duration,
+    );
+  }
+
+  /// High-priority top success alert floating above modals, bottom sheets and dialogs
+  static void showTopSuccess({
+    required BuildContext context,
+    required String message,
+    IconData? icon,
+    Duration duration = const Duration(milliseconds: 2800),
+  }) {
+    showTopToast(
+      context: context,
+      message: message,
+      icon: icon ?? Icons.check_circle_rounded,
+      duration: duration,
+    );
+  }
+
+  /// High-priority top info alert floating above modals, bottom sheets and dialogs
+  static void showTopInfo({
+    required BuildContext context,
+    required String message,
+    IconData? icon,
+    Duration duration = const Duration(milliseconds: 2800),
+  }) {
+    showTopToast(
+      context: context,
+      message: message,
+      isInfo: true,
+      icon: icon ?? Icons.info_outline_rounded,
+      duration: duration,
+    );
+  }
+}

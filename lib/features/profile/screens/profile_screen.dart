@@ -772,43 +772,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.lightImpact();
-                          context.push('/sell-rp');
+                          context.go('/sell-rp');
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.10)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF38BDF8)
-                                        .withValues(alpha: 0.40)
-                                  : const Color(0xFF0284C7)
-                                        .withValues(alpha: 0.35),
-                              width: 1.2,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF059669), Color(0xFF10B981)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.20 : 0.05,
-                                ),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
+                                color: const Color(0xFF10B981)
+                                    .withValues(alpha: 0.35),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
                             ],
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 LucideIcons.arrowUpFromLine,
                                 size: 14,
-                                color: isDark
-                                    ? const Color(0xFF38BDF8)
-                                    : const Color(0xFF0284C7),
+                                color: Colors.white,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -816,9 +807,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 style: GoogleFonts.spaceGrotesk(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? const Color(0xFF38BDF8)
-                                      : const Color(0xFF0284C7),
+                                  color: Colors.white,
                                 ),
                               ),
                             ],
@@ -1051,22 +1040,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(height: 14),
 
           // 3D "View earnings >" Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                context.push('/team');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F172A),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push('/team');
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFEF4444),
+                    Color(0xFFF43F5E),
+                    Color(0xFFFB7185),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                elevation: 2,
-                shadowColor: Colors.black.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1074,12 +1073,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Text(
                     'View Team & Earnings',
                     style: GoogleFonts.spaceGrotesk(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Icon(LucideIcons.arrowRight, size: 14),
+                  const Icon(
+                    LucideIcons.arrowRight,
+                    size: 14,
+                    color: Colors.white,
+                  ),
                 ],
               ),
             ),
@@ -1119,118 +1123,220 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildServicesCard(BuildContext context, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1930) : Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF0C1935), const Color(0xFF081226)]
+              : [const Color(0xFFF8FAFC), const Color(0xFFF1F5F9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-          width: 1.2,
+          color: isDark ? const Color(0xFF1E2E4E) : const Color(0xFFCBD5E1),
+          width: 1.4,
         ),
         boxShadow: AppSpacing.cardShadow(context),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Section Title Header Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF38BDF8), Color(0xFF2563EB)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'QUICK SERVICES & UTILITIES',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.30),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'All Systems Live',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           _buildMenuItem(
+            index: 0,
             icon: LucideIcons.gift,
             iconColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
             title: 'Newbie Rewards',
             subtitle: 'Claim sign-in & daily starter rewards',
             badgeText: '+₹100 FREE',
-            badgeBgColor: const Color(0xFFECFDF5),
-            badgeTextColor: const Color(0xFF059669),
+            badgeGradient: const [Color(0xFF059669), Color(0xFF10B981)],
+            tileBgColors: isDark
+                ? [const Color(0xFF261904), const Color(0xFF1A1102)]
+                : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
+            tileBorderColor: const Color(0xFFF59E0B),
             onTap: () {
               HapticFeedback.lightImpact();
               context.push('/newbie-rewards');
             },
           ),
-          _buildMenuDivider(isDark),
+          const SizedBox(height: 8),
           _buildMenuItem(
+            index: 1,
             icon: LucideIcons.creditCard,
-            iconColors: const [Color(0xFF10B981), Color(0xFF059669)],
+            iconColors: const [Color(0xFF6B21A8), Color(0xFF9333EA)],
             title: 'Bind payment APP',
             subtitle: 'PhonePe, GPay & UPI auto-settlement',
-            badgeText: 'Active',
-            badgeBgColor: const Color(0xFFEFF6FF),
-            badgeTextColor: const Color(0xFF2563EB),
+            badgeText: 'PhonePe Active',
+            badgeGradient: const [Color(0xFF6B21A8), Color(0xFF8A2BE2)],
+            hasLiveDot: true,
+            tileBgColors: isDark
+                ? [const Color(0xFF230D3B), const Color(0xFF150724)]
+                : [const Color(0xFFFAF5FF), const Color(0xFFF3E8FF)],
+            tileBorderColor: const Color(0xFF8B5CF6),
             onTap: () {
               HapticFeedback.lightImpact();
               context.push('/bind-payment');
             },
           ),
-          _buildMenuDivider(isDark),
+          const SizedBox(height: 8),
           _buildMenuItem(
+            index: 2,
             icon: LucideIcons.receiptText,
             iconColors: const [Color(0xFF0284C7), Color(0xFF2563EB)],
             title: 'Daily Details',
             subtitle: 'Transaction history, rewards & profit logs',
-            badgeText: 'Logs',
-            badgeBgColor: const Color(0xFFF1F5F9),
-            badgeTextColor: const Color(0xFF475569),
+            badgeText: 'Financial Logs',
+            badgeGradient: const [Color(0xFF0284C7), Color(0xFF2563EB)],
+            tileBgColors: isDark
+                ? [const Color(0xFF0A2244), const Color(0xFF05152B)]
+                : [const Color(0xFFF0F9FF), const Color(0xFFE0F2FE)],
+            tileBorderColor: const Color(0xFF0284C7),
             onTap: () {
               HapticFeedback.lightImpact();
               context.push('/daily-details');
             },
           ),
-          _buildMenuDivider(isDark),
+          const SizedBox(height: 8),
           _buildMenuItem(
+            index: 3,
             icon: LucideIcons.helpCircle,
             iconColors: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
             title: 'Common problem',
             subtitle: 'FAQs on buying, selling & returns',
-            badgeText: 'Guides',
-            badgeBgColor: const Color(0xFFFAF5FF),
-            badgeTextColor: const Color(0xFF7C3AED),
+            badgeText: 'Knowledge Base',
+            badgeGradient: const [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
+            tileBgColors: isDark
+                ? [const Color(0xFF1B133B), const Color(0xFF0F0B24)]
+                : [const Color(0xFFF5F3FF), const Color(0xFFEDE9FE)],
+            tileBorderColor: const Color(0xFF7C3AED),
             onTap: () {
               HapticFeedback.lightImpact();
               context.push('/faq');
             },
           ),
-          _buildMenuDivider(isDark),
+          const SizedBox(height: 8),
           _buildMenuItem(
+            index: 4,
             icon: LucideIcons.headphones,
             iconColors: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
             title: 'Online service',
             subtitle: '24/7 priority customer support desk',
-            badgeText: '● 24/7 Live',
-            badgeBgColor: const Color(0xFFECFDF5),
-            badgeTextColor: const Color(0xFF10B981),
+            badgeText: '● 24/7 Live Desk',
+            badgeGradient: const [Color(0xFF059669), Color(0xFF10B981)],
+            tileBgColors: isDark
+                ? [const Color(0xFF052A1B), const Color(0xFF02170E)]
+                : [const Color(0xFFF0FDF4), const Color(0xFFDCFCE7)],
+            tileBorderColor: const Color(0xFF10B981),
             onTap: () {
               HapticFeedback.lightImpact();
               CustomSnackBar.showInfo(
                 context: context,
-                message: 'Customer Support Desk is online (24x7).',
+                message: 'Connecting to 24/7 Live Customer Support Desk...',
                 icon: LucideIcons.headphones,
               );
             },
           ),
-          _buildMenuDivider(isDark),
+          const SizedBox(height: 8),
           _buildMenuItem(
+            index: 5,
             icon: LucideIcons.shieldCheck,
             iconColors: const [Color(0xFF06B6D4), Color(0xFF0D9488)],
             title: 'Account security',
             subtitle: 'Password protection & login credentials',
-            badgeText: 'Secure',
-            badgeBgColor: const Color(0xFFECFEFF),
-            badgeTextColor: const Color(0xFF0891B2),
+            badgeText: 'AES-256 Vault',
+            badgeGradient: const [Color(0xFF0891B2), Color(0xFF06B6D4)],
+            tileBgColors: isDark
+                ? [const Color(0xFF062833), const Color(0xFF03161C)]
+                : [const Color(0xFFECFEFF), const Color(0xFFCFFAFE)],
+            tileBorderColor: const Color(0xFF06B6D4),
             onTap: () {
               HapticFeedback.lightImpact();
               context.push('/account-security');
             },
           ),
-          _buildMenuDivider(isDark),
+          const SizedBox(height: 8),
           _buildMenuItem(
+            index: 6,
             icon: LucideIcons.send,
             iconColors: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
             title: 'Official Channel',
             subtitle: 'Join community announcements & signals',
-            badgeText: '50k+ Members',
-            badgeBgColor: const Color(0xFFF0FDF4),
-            badgeTextColor: const Color(0xFF16A34A),
+            badgeText: '50K+ Community',
+            badgeGradient: const [Color(0xFF0284C7), Color(0xFF0EA5E9)],
+            tileBgColors: isDark
+                ? [const Color(0xFF0B1E42), const Color(0xFF061126)]
+                : [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
+            tileBorderColor: const Color(0xFF3B82F6),
             onTap: () {
               HapticFeedback.lightImpact();
               CustomSnackBar.showInfo(
                 context: context,
-                message:
-                    'Official Community Channel: Join Telegram & WhatsApp.',
+                message: 'Official Community Channel: Join Telegram & WhatsApp.',
                 icon: LucideIcons.send,
               );
             },
@@ -1241,120 +1347,198 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildMenuItem({
+    required int index,
     required IconData icon,
     required List<Color> iconColors,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    required List<Color> tileBgColors,
+    required Color tileBorderColor,
     String? badgeText,
-    Color? badgeBgColor,
-    Color? badgeTextColor,
+    List<Color>? badgeGradient,
+    bool hasLiveDot = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        child: Row(
-          children: [
-            // Colorful 3D Icon Container
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: iconColors,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: iconColors.first.withValues(alpha: 0.32),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: tileBgColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Center(child: Icon(icon, size: 20, color: Colors.white)),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: tileBorderColor.withValues(alpha: isDark ? 0.35 : 0.28),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: tileBorderColor.withValues(alpha: isDark ? 0.15 : 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
+            child: Row(
+              children: [
+                // Colorful 3D Icon Container
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: iconColors,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: iconColors.first.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(icon, size: 21, color: Colors.white),
+                  ),
+                ),
 
-            const SizedBox(width: 14),
+                const SizedBox(width: 12),
 
-            // Title & Subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                // Title & Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 6),
+
+                // Optional Gradient Badge Pill
+                if (badgeText != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                    decoration: BoxDecoration(
+                      gradient: badgeGradient != null
+                          ? LinearGradient(
+                              colors: badgeGradient,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: badgeGradient == null
+                          ? (isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : const Color(0xFFF1F5F9))
+                          : null,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: badgeGradient != null
+                          ? [
+                              BoxShadow(
+                                color: badgeGradient.first.withValues(alpha: 0.35),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasLiveDot) ...[
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(
+                          badgeText,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF64748B),
+                  const SizedBox(width: 6),
+                ],
+
+                // Chevron Pill
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white12 : Colors.white.withValues(alpha: 0.8),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // Optional Badge Pill
-            if (badgeText != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? (badgeBgColor ?? Colors.white).withValues(alpha: 0.18)
-                      : (badgeBgColor ?? const Color(0xFFF1F5F9)),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badgeText,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: badgeTextColor ?? const Color(0xFF0F172A),
+                  child: Icon(
+                    LucideIcons.chevronRight,
+                    size: 13,
+                    color: isDark ? Colors.white70 : const Color(0xFF475569),
                   ),
                 ),
-              ),
-              const SizedBox(width: 6),
-            ],
-
-            // Chevron
-            const Icon(
-              LucideIcons.chevronRight,
-              size: 16,
-              color: Color(0xFF94A3B8),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMenuDivider(bool isDark) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      indent: 72,
-      endIndent: 16,
-      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-    );
+    )
+        .animate()
+        .fadeIn(delay: (160 + index * 40).ms, duration: 350.ms)
+        .slideX(
+          begin: 0.05,
+          end: 0,
+          delay: (160 + index * 40).ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 
   /// Bank-Grade Security & AES Trust Badge
@@ -1454,114 +1638,177 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _handleLogout(BuildContext context, WidgetRef ref, bool isDark) {
+    HapticFeedback.mediumImpact();
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 22),
         child: Container(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF0F172A) : Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [
+                      const Color(0xFF1E1117),
+                      const Color(0xFF160B10),
+                      const Color(0xFF0F070B),
+                    ]
+                  : [
+                      const Color(0xFFFFF1F2),
+                      const Color(0xFFFFE4E6),
+                      const Color(0xFFFAFAFA),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-              width: 1.3,
+              color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.45 : 0.35),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.30 : 0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Dual-Ring Glowing Logout Emblem
               Container(
-                width: 52,
-                height: 52,
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEE2E2),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                    width: 1.5,
+                  ),
                 ),
-                child: const Center(
-                  child: Icon(
-                    LucideIcons.logOut,
-                    size: 26,
-                    color: Color(0xFFEF4444),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.45),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      LucideIcons.logOut,
+                      size: 24,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Text(
-                'Confirm Logout',
+                'Confirm Sign Out',
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.3,
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Are you sure you want to sign out from Quick Money?',
+                'Are you sure you want to end your active session on Quick Money? You will need to sign in again to access trading.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
-                  fontSize: 13,
+                  fontSize: 12.5,
+                  height: 1.4,
                   fontWeight: FontWeight.w500,
                   color: isDark
                       ? const Color(0xFF94A3B8)
                       : const Color(0xFF64748B),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(dialogCtx),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(
+                          color: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
+                          width: 1.3,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: Text(
-                        'Cancel',
+                        'Keep Active',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(dialogCtx);
-                        ref.read(authProvider.notifier).logout();
-                        context.go('/login');
-                        CustomSnackBar.showInfo(
-                          context: context,
-                          message: 'Logged out successfully.',
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEF4444),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFB91C1C)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        elevation: 0,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.38),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Logout',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w800,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogCtx);
+                          ref.read(authProvider.notifier).logout();
+                          context.go('/login');
+                          CustomSnackBar.showInfo(
+                            context: context,
+                            message: 'Logged out successfully.',
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Sign Out',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                          ),
                         ),
                       ),
                     ),

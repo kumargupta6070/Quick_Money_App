@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "io.naimify" "\0"
-            VALUE "FileDescription", "icu_mobile_app" "\0"
+            VALUE "FileDescription", "quick_money" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "icu_mobile_app" "\0"
+            VALUE "InternalName", "quick_money" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 io.naimify. All rights reserved." "\0"
-            VALUE "OriginalFilename", "icu_mobile_app.exe" "\0"
-            VALUE "ProductName", "icu_mobile_app" "\0"
+            VALUE "OriginalFilename", "quick_money.exe" "\0"
+            VALUE "ProductName", "quick_money" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
