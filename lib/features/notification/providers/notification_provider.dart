@@ -1,8 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/api_endpoints.dart';
 import '../models/notification_model.dart';
 
 /// Notifications State Notifier
 class NotificationNotifier extends Notifier<List<NotificationModel>> {
+  ApiClient get _apiClient => ref.read(apiClientProvider);
+
   static final List<NotificationModel> _initialNotifications = [
     NotificationModel(
       id: 'notif_1',
@@ -83,7 +87,26 @@ class NotificationNotifier extends Notifier<List<NotificationModel>> {
 
   @override
   List<NotificationModel> build() {
+    Future.microtask(() => fetchNotifications());
     return _initialNotifications;
+  }
+
+  /// Fetch live notifications from Backend API (GET /notifications)
+  Future<void> fetchNotifications() async {
+    try {
+      if (ApiEndpoints.useMockData) return;
+      final res = await _apiClient.get(ApiEndpoints.notifications);
+      if (res.success && res.data is List) {
+        final list = (res.data as List)
+            .map((e) => NotificationModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (list.isNotEmpty) {
+          state = list;
+        }
+      }
+    } catch (_) {
+      // Non-blocking fallback
+    }
   }
 
   /// Mark single notification as read

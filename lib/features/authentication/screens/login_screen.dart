@@ -40,10 +40,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     // 1. Mobile Number Required check via CustomSnackBar
     if (mobile.isEmpty) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
-        message:
-            'Mobile number is required. Please enter your 10-digit number.',
+        message: 'Mobile number is required. Please enter your 10-digit number.',
+        icon: LucideIcons.phone,
       );
       return;
     }
@@ -51,27 +51,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // 2. Exactly 10 digits check via CustomSnackBar
     final cleanDigits = mobile.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleanDigits.length != 10) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Invalid mobile number! Exactly 10 digits required (e.g. 9835913180).',
+        icon: LucideIcons.alertTriangle,
       );
       return;
     }
 
     // 3. Password Required check via CustomSnackBar
     if (password.isEmpty) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Password is required. Please enter your account password.',
+        icon: LucideIcons.lock,
       );
       return;
     }
 
     // 4. Password minimum 6 characters check via CustomSnackBar
     if (password.length < 6) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Password is too short. Minimum 6 characters required.',
+        icon: LucideIcons.shieldAlert,
       );
       return;
     }
@@ -87,22 +90,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       CustomLoader.hide(context);
 
       if (success) {
-        CustomSnackBar.showSuccess(
+        CustomSnackBar.showTopSuccess(
           context: context,
           message: 'Welcome back to Quick Money! Login successful.',
+          icon: LucideIcons.shieldCheck,
         );
         context.go('/home');
       } else {
-        CustomSnackBar.showError(
+        final err = ref.read(authProvider).error ?? 'Invalid credentials. Please verify your mobile and password.';
+        CustomSnackBar.showTopError(
           context: context,
-          message:
-              'Invalid credentials. Please verify your mobile and password.',
+          message: err,
         );
       }
     } catch (e) {
       if (!mounted) return;
       CustomLoader.hide(context);
-      CustomSnackBar.showError(
+      CustomSnackBar.showTopError(
         context: context,
         message: 'Network error. Please check your connection and try again.',
       );

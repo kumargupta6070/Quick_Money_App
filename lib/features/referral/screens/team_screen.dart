@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/providers/referral_provider.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/custom_snackbar.dart';
@@ -58,6 +59,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
+    final team = ref.watch(referralProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -66,7 +68,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             setState(() => _animSeed++);
-            await Future.delayed(const Duration(milliseconds: 300));
+            await ref.read(referralProvider.notifier).fetchTeamOverview();
           },
           child: SingleChildScrollView(
             key: ValueKey('team_scroll_$_animSeed'),
@@ -77,7 +79,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ── 1. Royal FinTech Hero Curved Header ──
-                _buildHeroHeader(context, isDark, user.inviteCode)
+                _buildHeroHeader(context, isDark, user.inviteCode, team.totalEarnings)
                     .animate()
                     .fadeIn(duration: 350.ms)
                     .slideY(begin: -0.05, end: 0, curve: Curves.easeOutCubic),
@@ -87,7 +89,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                 // ── 2. Network Performance KPI Metrics Bar ──
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildNetworkKpis(isDark),
+                  child: _buildNetworkKpis(isDark, team),
                 )
                     .animate()
                     .fadeIn(delay: 80.ms, duration: 400.ms)
@@ -170,9 +172,9 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                       _buildTierCard(
                         context: context,
                         level: 'Level 1 (Direct)',
-                        tagText: '5% Rebate Yield',
-                        members: '12 Members',
-                        earnings: '₹95.00',
+                        tagText: '${team.level1Percent} Rebate Yield',
+                        members: '${team.level1Members} Members',
+                        earnings: '₹${(team.totalEarnings * 0.60).toStringAsFixed(2)}',
                         subtext: 'Direct invitees purchasing RP orders',
                         icon: LucideIcons.userCheck,
                         gradientColors: isDark
@@ -190,9 +192,9 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                       _buildTierCard(
                         context: context,
                         level: 'Level 2 (Indirect)',
-                        tagText: '3% Rebate Yield',
-                        members: '28 Members',
-                        earnings: '₹38.50',
+                        tagText: '${team.level2Percent} Rebate Yield',
+                        members: '${team.level2Members} Members',
+                        earnings: '₹${(team.totalEarnings * 0.28).toStringAsFixed(2)}',
                         subtext: 'Invited by your direct team members',
                         icon: LucideIcons.users,
                         gradientColors: isDark
@@ -210,9 +212,9 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                       _buildTierCard(
                         context: context,
                         level: 'Level 3 (Community)',
-                        tagText: '1% Rebate Yield',
-                        members: '45 Members',
-                        earnings: '₹15.00',
+                        tagText: '${team.level3Percent} Rebate Yield',
+                        members: '${team.level3Members} Members',
+                        earnings: '₹${(team.totalEarnings * 0.12).toStringAsFixed(2)}',
                         subtext: 'Extended downstream network volume',
                         icon: LucideIcons.network,
                         gradientColors: isDark
@@ -370,7 +372,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
   }
 
   /// Royal FinTech Header with glowing earnings hero
-  Widget _buildHeroHeader(BuildContext context, bool isDark, String inviteCode) {
+  Widget _buildHeroHeader(BuildContext context, bool isDark, String inviteCode, [double totalEarnings = 148.50]) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -545,7 +547,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                     ),
                     const SizedBox(height: 6),
                     GradientText(
-                      CurrencyFormatter.format(148.50),
+                      CurrencyFormatter.format(totalEarnings),
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 34,
                         fontWeight: FontWeight.w900,
@@ -686,14 +688,17 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
   }
 
   /// Network KPI Metrics: 3 FinTech mini tiles with vibrant gradients and staggered animations
-  Widget _buildNetworkKpis(bool isDark) {
+  Widget _buildNetworkKpis(bool isDark, [TeamOverview? team]) {
+    final t = team ?? const TeamOverview();
+    final totalMembers = t.level1Members + t.level2Members + t.level3Members;
+
     return Row(
       children: [
         Expanded(
           child: _buildMiniKpi(
             title: 'Direct Team',
-            value: '12 Users',
-            subtitle: '5% Tier',
+            value: '${t.level1Members} Users',
+            subtitle: '${t.level1Percent} Tier',
             icon: LucideIcons.userPlus,
             color: const Color(0xFF0284C7),
             gradientColors: isDark
@@ -707,7 +712,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
         Expanded(
           child: _buildMiniKpi(
             title: 'Network Size',
-            value: '85 Users',
+            value: '$totalMembers Users',
             subtitle: '3 Tiers',
             icon: LucideIcons.network,
             color: const Color(0xFF8B5CF6),

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../core/mock_data/app_mock_data.dart';
+import '../../../core/providers/profit_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
@@ -27,7 +27,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final detail = AppMockData.dailyDetail;
+    final detail = ref.watch(profitProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Auto-return target calculations (PhonePe target ₹100)
@@ -44,7 +44,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             setState(() => _animSeed++);
-            await Future.delayed(const Duration(milliseconds: 300));
+            await ref.read(profitProvider.notifier).fetchDailyDetails();
           },
           child: SingleChildScrollView(
             key: ValueKey('daily_scroll_${_animSeed}_$_selectedDateFilter'),

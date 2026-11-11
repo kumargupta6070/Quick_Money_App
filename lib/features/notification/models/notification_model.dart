@@ -58,5 +58,34 @@ class NotificationModel {
       actionLabel: actionLabel ?? this.actionLabel,
     );
   }
+
+  factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    NotificationType nType = NotificationType.system;
+    final typeStr = json['type']?.toString().toLowerCase();
+    if (typeStr == 'order' || typeStr == 'transaction') {
+      nType = NotificationType.order;
+    } else if (typeStr == 'rebate') {
+      nType = NotificationType.rebate;
+    } else if (typeStr == 'reward') {
+      nType = NotificationType.reward;
+    } else if (typeStr == 'security') {
+      nType = NotificationType.security;
+    }
+
+    return NotificationModel(
+      id: json['id']?.toString() ?? 'notif_${DateTime.now().millisecondsSinceEpoch}',
+      title: json['title']?.toString() ?? 'Quick Money Notification',
+      message: json['message']?.toString() ?? '',
+      detailedMessage: json['detailed_message']?.toString() ?? json['message']?.toString() ?? '',
+      type: nType,
+      timestamp: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      isRead: json['is_read'] == true || json['is_read'] == 1,
+      amount: double.tryParse(json['amount']?.toString() ?? ''),
+      actionRoute: json['action_route']?.toString(),
+      actionLabel: json['action_label']?.toString(),
+    );
+  }
 }
 

@@ -43,13 +43,13 @@ class TransactionModel {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
-      id: json['id'] as int? ?? 1,
+      id: int.tryParse(json['id']?.toString() ?? '1') ?? 1,
       type: TransactionType.values.firstWhere(
         (e) => e.name == json['type'],
         orElse: () => TransactionType.buy,
       ),
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-      profit: (json['profit'] as num?)?.toDouble() ?? 0.0,
+      amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
+      profit: double.tryParse(json['profit']?.toString() ?? '0') ?? 0.0,
       paymentMethod: json['payment_method'] as String? ?? 'phonepe',
       paymentSource: json['payment_source'] as String?,
       paymentDestination: json['payment_destination'] as String?,

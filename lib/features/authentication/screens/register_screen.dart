@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/custom_loader.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../widgets/auth_background.dart';
@@ -24,6 +25,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _inviteController = TextEditingController(
     text: 'w2XZyx',
@@ -34,6 +36,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void dispose() {
     _mobileController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _inviteController.dispose();
     super.dispose();
@@ -41,14 +44,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     final mobile = _mobileController.text.trim();
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
     final invite = _inviteController.text.trim();
 
     // 1. Mobile Number Required check via CustomSnackBar
     if (mobile.isEmpty) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Mobile number is required to register an account.',
+        icon: LucideIcons.phone,
       );
       return;
     }
@@ -56,47 +61,68 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     // 2. Exactly 10 digits check via CustomSnackBar
     final cleanDigits = mobile.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleanDigits.length != 10) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Invalid mobile number! Exactly 10 digits required (e.g. 9835913180).',
+        icon: LucideIcons.alertTriangle,
       );
       return;
     }
 
-    // 3. Password Required check via CustomSnackBar
-    if (password.isEmpty) {
-      CustomSnackBar.showWarning(
+    // 3. Email Address Required & Format Check via CustomSnackBar
+    if (email.isEmpty) {
+      CustomSnackBar.showTopWarning(
         context: context,
-        message:
-            'Password is required. Please create a password for your account.',
+        message: 'Email address is required to receive your security OTP.',
+        icon: LucideIcons.mail,
+      );
+      return;
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      CustomSnackBar.showTopWarning(
+        context: context,
+        message: 'Please enter a valid email address (e.g. investor@gmail.com).',
+        icon: LucideIcons.alertCircle,
       );
       return;
     }
 
-    // 4. Password minimum 6 characters check via CustomSnackBar
+    // 4. Password Required check via CustomSnackBar
+    if (password.isEmpty) {
+      CustomSnackBar.showTopWarning(
+        context: context,
+        message: 'Password is required. Please create a password for your account.',
+        icon: LucideIcons.lock,
+      );
+      return;
+    }
+
+    // 5. Password minimum 6 characters check via CustomSnackBar
     if (password.length < 6) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Password is too short. Minimum 6 characters required.',
+        icon: LucideIcons.shieldAlert,
       );
       return;
     }
 
-    // 5. Invitation Code Required check via CustomSnackBar
+    // 6. Invitation Code Required check via CustomSnackBar
     if (invite.isEmpty) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
         message: 'Invitation referral code is required to join Quick Money.',
+        icon: LucideIcons.gift,
       );
       return;
     }
 
-    // 6. Terms Checkbox check via CustomSnackBar
+    // 7. Terms Checkbox check via CustomSnackBar
     if (!_agreedToTerms) {
-      CustomSnackBar.showWarning(
+      CustomSnackBar.showTopWarning(
         context: context,
-        message:
-            'Please agree to Terms of Service & Privacy Policy to register.',
+        message: 'Please agree to Terms of Service & Privacy Policy to register.',
+        icon: LucideIcons.checkCheck,
       );
       return;
     }
@@ -104,21 +130,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
     CustomLoader.show(
       context,
-      message: 'Creating secure Quick Money account...',
+      message: 'Generating 256-Bit Security OTP...',
     );
 
-    await Future.delayed(const Duration(milliseconds: 1000));
+    final success = await ref.read(authProvider.notifier).sendRegisterOtp(
+          email: email,
+          mobile: cleanDigits,
+        );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
     CustomLoader.hide(context);
 
-    CustomSnackBar.showSuccess(
-      context: context,
-      message: 'Account created successfully! Verify your number with OTP.',
-    );
+    if (success) {
+      CustomSnackBar.showTopSuccess(
+        context: context,
+        message: 'Verification code sent to $email! Please verify.',
+        icon: LucideIcons.mailCheck,
+      );
 
-    context.push('/otp', extra: cleanDigits);
+      context.push(
+        '/otp',
+        extra: {
+          'mobile': cleanDigits,
+          'email': email,
+          'password': password,
+          'invite': invite,
+        },
+      );
+    } else {
+      final error = ref.read(authProvider).error ?? 'Failed to send security code. Please try again.';
+      CustomSnackBar.showTopError(
+        context: context,
+        message: error,
+      );
+    }
   }
 
   @override
@@ -211,6 +257,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               begin: -0.1,
                               end: 0,
                               delay: 150.ms,
+                              duration: 400.ms,
+                            ),
+
+                        const SizedBox(height: 16),
+
+                        // Email Field (for Brevo Email OTP)
+                        AuthTextField(
+                              controller: _emailController,
+                              label: 'Email Address (for Security OTP)',
+                              hint: 'e.g. investor@gmail.com',
+                              prefixIcon: LucideIcons.mail,
+                              keyboardType: TextInputType.emailAddress,
+                              maxLength: 60,
+                            )
+                            .animate()
+                            .fade(delay: 200.ms, duration: 400.ms)
+                            .slideX(
+                              begin: 0.1,
+                              end: 0,
+                              delay: 200.ms,
                               duration: 400.ms,
                             ),
 

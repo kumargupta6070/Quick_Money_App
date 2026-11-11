@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/mock_data/app_mock_data.dart';
 import '../../../core/providers/navigation_provider.dart';
+import '../../../core/providers/profit_provider.dart';
+import '../../../core/providers/transaction_provider.dart';
 import '../../../core/providers/user_provider.dart';
+import '../../notification/providers/notification_provider.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../widgets/home_header.dart';
 import '../widgets/live_payout_ticker.dart';
@@ -25,7 +27,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _handleRefresh() async {
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.wait([
+      ref.read(userProvider.notifier).fetchProfile(),
+      ref.read(profitProvider.notifier).fetchDailyDetails(),
+      ref.read(transactionProvider.notifier).fetchTransactions(),
+      ref.read(notificationProvider.notifier).fetchNotifications(),
+    ]);
     if (mounted) setState(() {});
   }
 
@@ -34,7 +41,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Watches the tab switch animation trigger so all animations replay upon returning
     final animTrigger = ref.watch(homeAnimationTriggerProvider);
     final user = ref.watch(userProvider);
-    final stats = AppMockData.homeStats;
+    final dailyProfit = ref.watch(profitProvider);
+    final stats = {
+      'buyQuantity': dailyProfit.purchaseNumber > 0
+          ? dailyProfit.purchaseNumber
+          : 1,
+      'buyAmount': dailyProfit.purchaseAmount > 0
+          ? dailyProfit.purchaseAmount
+          : 1550.0,
+      'sellToday': dailyProfit.sellAmount > 0 ? dailyProfit.sellAmount : 1599.0,
+      'totalRevenue': dailyProfit.totalIncome > 0
+          ? dailyProfit.totalIncome
+          : 38.75,
+    };
 
     return Scaffold(
       body: AnimatedAmbientBackground(

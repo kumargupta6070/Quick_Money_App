@@ -49,20 +49,30 @@ class DailyDetailModel {
 
   factory DailyDetailModel.fromJson(Map<String, dynamic> json) {
     return DailyDetailModel(
-      date: json['date'] as String? ?? '',
-      totalIncome: (json['total_income'] as num?)?.toDouble() ?? 0.0,
-      purchaseNumber: json['purchase_number'] as int? ?? 0,
-      purchaseAmount: (json['purchase_amount'] as num?)?.toDouble() ?? 0.0,
-      brokerage: (json['brokerage'] as num?)?.toDouble() ?? 0.0,
-      teamRebates: (json['team_rebates'] as num?)?.toDouble() ?? 0.0,
-      subordinateRebates: (json['subordinate_rebates'] as num?)?.toDouble() ?? 0.0,
-      usdtRecharge: (json['usdt_recharge'] as num?)?.toDouble() ?? 0.0,
-      trxRecharge: (json['trx_recharge'] as num?)?.toDouble() ?? 0.0,
-      sellNumber: json['sell_number'] as int? ?? 0,
-      sellAmount: (json['sell_amount'] as num?)?.toDouble() ?? 0.0,
-      activityReward: (json['activity_reward'] as num?)?.toDouble() ?? 0.0,
-      otherReward: (json['other_reward'] as num?)?.toDouble() ?? 0.0,
+      date: (json['profit_date'] ?? json['date'])?.toString() ?? '',
+      totalIncome:
+          double.tryParse(json['total_income']?.toString() ?? '0') ?? 0.0,
+      purchaseNumber:
+          int.tryParse(json['purchase_number']?.toString() ?? '0') ?? 0,
+      purchaseAmount:
+          double.tryParse(json['purchase_amount']?.toString() ?? '0') ?? 0.0,
+      brokerage: double.tryParse(json['brokerage']?.toString() ?? '0') ?? 0.0,
+      teamRebates:
+          double.tryParse(json['team_rebates']?.toString() ?? '0') ?? 0.0,
+      subordinateRebates:
+          double.tryParse(json['subordinate_rebates']?.toString() ?? '0') ??
+          0.0,
+      usdtRecharge:
+          double.tryParse(json['usdt_recharge']?.toString() ?? '0') ?? 0.0,
+      trxRecharge:
+          double.tryParse(json['trx_recharge']?.toString() ?? '0') ?? 0.0,
+      sellNumber: int.tryParse(json['sell_number']?.toString() ?? '0') ?? 0,
+      sellAmount:
+          double.tryParse(json['sell_amount']?.toString() ?? '0') ?? 0.0,
+      activityReward:
+          double.tryParse(json['activity_reward']?.toString() ?? '0') ?? 0.0,
+      otherReward:
+          double.tryParse(json['other_reward']?.toString() ?? '0') ?? 0.0,
     );
   }
 }
-

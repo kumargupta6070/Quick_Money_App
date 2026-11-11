@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../../core/providers/user_provider.dart';
+import '../../../core/providers/wallet_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/custom_snackbar.dart';
@@ -46,7 +47,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             ref.read(mineAnimationTriggerProvider.notifier).trigger();
-            await Future.delayed(const Duration(milliseconds: 350));
+            await Future.wait([
+              ref.read(userProvider.notifier).fetchProfile(),
+              ref.read(walletProvider.notifier).fetchWallet(),
+            ]);
           },
           child: SingleChildScrollView(
             key: ValueKey('mine_scroll_${animTrigger}_${user.id}'),

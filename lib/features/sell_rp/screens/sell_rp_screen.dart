@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../core/mock_data/app_mock_data.dart';
 import '../../../core/providers/navigation_provider.dart';
+import '../../../core/providers/transaction_provider.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/providers/wallet_provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -28,7 +28,11 @@ class SellRpScreen extends ConsumerStatefulWidget {
 
 class _SellRpScreenState extends ConsumerState<SellRpScreen> {
   Future<void> _handleRefresh() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.wait([
+      ref.read(userProvider.notifier).fetchProfile(),
+      ref.read(walletProvider.notifier).fetchWallet(),
+      ref.read(transactionProvider.notifier).fetchTransactions(),
+    ]);
     if (mounted) setState(() {});
   }
 
@@ -38,7 +42,10 @@ class _SellRpScreenState extends ConsumerState<SellRpScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = ref.watch(userProvider);
     final wallet = ref.watch(walletProvider);
-    final sellData = AppMockData.sellOverview;
+    final sellData = {
+      'receiptAmount': user.balance,
+      'availableTimes': 0,
+    };
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,

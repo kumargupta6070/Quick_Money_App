@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 enum Environment { dev, staging, prod }
 
 class AppConfig {
@@ -9,7 +11,11 @@ class AppConfig {
   static String get apiBaseUrl {
     switch (environment) {
       case Environment.dev:
-        return 'http://10.0.2.2:5000/api/v1'; // Android emulator localhost
+        // Use localhost for Web & Desktop, 10.0.2.2 for Android Emulator
+        if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows) {
+          return 'http://localhost:5000/api/v1';
+        }
+        return 'http://10.0.2.2:5000/api/v1';
       case Environment.staging:
         return 'https://quick-money-staging.onrender.com/api/v1';
       case Environment.prod:
@@ -17,7 +23,7 @@ class AppConfig {
     }
   }
 
-  /// When true, app serves rich local mock data without hitting network
-  static bool useMockData = true;
-}
 
+  /// Toggle between live backend API calls and local mock fallback
+  static bool useMockData = false;
+}

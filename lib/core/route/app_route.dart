@@ -78,11 +78,31 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/otp',
-      pageBuilder: (context, state) => PageTransitions.slideRight(
-        context: context,
-        state: state,
-        child: OtpScreen(mobile: state.extra as String?),
-      ),
+      pageBuilder: (context, state) {
+        String? mobile;
+        String? email;
+        String? password;
+        String? invite;
+        if (state.extra is Map<String, dynamic>) {
+          final map = state.extra as Map<String, dynamic>;
+          mobile = map['mobile'] as String?;
+          email = map['email'] as String?;
+          password = map['password'] as String?;
+          invite = map['invite'] as String?;
+        } else if (state.extra is String) {
+          mobile = state.extra as String;
+        }
+        return PageTransitions.slideRight(
+          context: context,
+          state: state,
+          child: OtpScreen(
+            mobile: mobile,
+            email: email,
+            password: password,
+            invite: invite,
+          ),
+        );
+      },
     ),
 
     // Bottom Navigation Shell (Home, Buy RP, Sell RP, Mine)

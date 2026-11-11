@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/custom_loader.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../widgets/auth_background.dart';
@@ -13,62 +14,80 @@ import '../widgets/auth_text_field.dart';
 
 /// Next-Level, High-Impact Animated Reset/Forgot Password Screen for Quick Money.
 /// Features signature dark luxury mesh background, glowing ambient orbs,
-/// frosted glassmorphic card, strict 10-digit phone validation, and CustomSnackBar alerts.
-class ForgotPasswordScreen extends StatefulWidget {
+/// frosted glassmorphic card, email/phone validation, and CustomSnackBar alerts.
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _mobileController = TextEditingController();
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  final _inputController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _mobileController.dispose();
+    _inputController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSendReset() async {
-    final mobile = _mobileController.text.trim();
+    final input = _inputController.text.trim();
 
-    // 1. Mobile Number Required check via CustomSnackBar
-    if (mobile.isEmpty) {
-      CustomSnackBar.showWarning(
+    // 1. Required check via CustomSnackBar
+    if (input.isEmpty) {
+      CustomSnackBar.showTopWarning(
         context: context,
-        message:
-            'Please enter your registered mobile number to reset password.',
+        message: 'Please enter your registered Email address to reset password.',
+        icon: LucideIcons.mail,
       );
       return;
     }
 
-    // 2. Exactly 10 digits check via CustomSnackBar
-    final cleanDigits = mobile.replaceAll(RegExp(r'[^0-9]'), '');
-    if (cleanDigits.length != 10) {
-      CustomSnackBar.showWarning(
+    final isEmail = input.contains('@');
+    if (!isEmail) {
+      CustomSnackBar.showTopWarning(
         context: context,
-        message: 'Invalid mobile number! Exactly 10 digits required (e.g. 9835913180).',
+        message: 'Please enter a valid registered Email address (e.g. investor@gmail.com).',
+        icon: LucideIcons.alertCircle,
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    CustomLoader.show(context, message: 'Sending OTP verification code...');
+    CustomLoader.show(context, message: 'Dispatching Password Reset OTP to your email...');
 
-    await Future.delayed(const Duration(milliseconds: 900));
+    final success = await ref.read(authProvider.notifier).sendRegisterOtp(
+          email: input,
+          mobile: '9835913180',
+        );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
     CustomLoader.hide(context);
 
-    CustomSnackBar.showSuccess(
-      context: context,
-      message: 'Reset verification OTP sent to +91 $cleanDigits successfully.',
-    );
+    if (success) {
+      CustomSnackBar.showTopSuccess(
+        context: context,
+        message: 'Password reset security OTP sent to $input successfully.',
+        icon: LucideIcons.mailCheck,
+      );
 
-    context.push('/otp', extra: cleanDigits);
+      context.push(
+        '/otp',
+        extra: {
+          'email': input,
+          'type': 'forgot_password',
+        },
+      );
+    } else {
+      final err = ref.read(authProvider).error ?? 'Could not send reset code. Please verify your email.';
+      CustomSnackBar.showTopError(
+        context: context,
+        message: err,
+      );
+    }
   }
 
   @override
@@ -82,107 +101,91 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             children: [
               // Top Back Button
               Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => context.pop(),
-                      icon: const Icon(
-                        LucideIcons.arrowLeft,
-                        color: Colors.white,
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B)
-                            .withValues(alpha: 0.8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Color(0xFF334155)),
-                        ),
-                      ),
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(
+                    LucideIcons.arrowLeft,
+                    color: Colors.white,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: Color(0xFF334155)),
                     ),
-                  )
+                  ),
+                ),
+              )
                   .animate()
                   .fade(duration: 300.ms)
                   .slideX(begin: -0.2, end: 0, duration: 300.ms),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
 
-              // Top Levitating Emblem & Header
+              // Header
               const AuthHeader(
                 title: 'Reset Password',
-                subtitle: 'Enter your registered mobile number to receive verification OTP instructions',
+                subtitle: 'Enter your registered email to receive an instant verification code',
                 iconSize: 76,
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
-              // Luxury Glass Card Container
+              // Card with Input
               Container(
-                    padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(26),
-                      border: Border.all(
-                        color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF00E5FF)
-                              .withValues(alpha: 0.12),
-                          blurRadius: 28,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
+                      blurRadius: 28,
+                      offset: const Offset(0, 8),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Mobile Field with 10-digit formatters & +91 badge
-                        AuthTextField(
-                              controller: _mobileController,
-                              label: 'Registered Mobile Number',
-                              hint: 'Enter your 10-digit mobile number',
-                              prefixIcon: LucideIcons.phone,
-                              isPhone: true,
-                              keyboardType: TextInputType.phone,
-                              maxLength: 10,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
-                              ],
-                            )
-                            .animate()
-                            .fade(delay: 150.ms, duration: 400.ms)
-                            .slideX(
-                              begin: -0.1,
-                              end: 0,
-                              delay: 150.ms,
-                              duration: 400.ms,
-                            ),
-
-                        const SizedBox(height: 24),
-
-                        // Send Verification Button
-                        AuthButton(
-                              text: 'Send Verification OTP',
-                              icon: LucideIcons.send,
-                              isLoading: _isLoading,
-                              onPressed: _handleSendReset,
-                            )
-                            .animate()
-                            .fade(delay: 300.ms, duration: 400.ms)
-                            .scale(
-                              begin: const Offset(0.95, 0.95),
-                              delay: 300.ms,
-                              duration: 350.ms,
-                            ),
-                      ],
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
-                  )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Email Field
+                    AuthTextField(
+                      controller: _inputController,
+                      label: 'Registered Email Address',
+                      hint: 'e.g. investor@gmail.com',
+                      prefixIcon: LucideIcons.mail,
+                      keyboardType: TextInputType.emailAddress,
+                      maxLength: 60,
+                    )
+                        .animate()
+                        .fade(delay: 150.ms, duration: 400.ms)
+                        .slideX(begin: -0.1, end: 0, delay: 150.ms, duration: 400.ms),
+
+                    const SizedBox(height: 24),
+
+                    // Send Verification Button
+                    AuthButton(
+                      text: 'Send Verification OTP',
+                      icon: LucideIcons.send,
+                      isLoading: _isLoading,
+                      onPressed: _handleSendReset,
+                    )
+                        .animate()
+                        .fade(delay: 300.ms, duration: 400.ms)
+                        .scale(begin: const Offset(0.95, 0.95), delay: 300.ms, duration: 350.ms),
+                  ],
+                ),
+              )
                   .animate()
                   .fade(delay: 100.ms, duration: 500.ms)
                   .slideY(

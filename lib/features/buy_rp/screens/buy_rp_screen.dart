@@ -105,84 +105,86 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
 
                       // Marketplace Subheader Bar: Title & Active Orders Badge
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF38BDF8)
-                                      .withValues(alpha: 0.20),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.shoppingBag,
-                                  size: 14,
-                                  color: Color(0xFF38BDF8),
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF38BDF8)
+                                          .withValues(alpha: 0.20),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.shoppingBag,
+                                      size: 14,
+                                      color: Color(0xFF38BDF8),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'RP MARKETPLACE',
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.95,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'RP MARKETPLACE',
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.8,
-                                  color: Colors.white.withValues(alpha: 0.95),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981)
+                                      .withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(0xFF10B981)
+                                        .withValues(alpha: 0.35),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Color(0xFF10B981),
+                                          ),
+                                        )
+                                        .animate(
+                                          onPlay: (controller) =>
+                                              controller.repeat(reverse: true),
+                                        )
+                                        .fade(
+                                          begin: 0.3,
+                                          end: 1.0,
+                                          duration: 500.ms,
+                                        ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${orderState.orders.length} Orders Live',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF34D399),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981)
-                                  .withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFF10B981)
-                                    .withValues(alpha: 0.35),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFF10B981),
-                                  ),
-                                )
-                                    .animate(
-                                      onPlay: (controller) =>
-                                          controller.repeat(reverse: true),
-                                    )
-                                    .fade(
-                                      begin: 0.3,
-                                      end: 1.0,
-                                      duration: 500.ms,
-                                    ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${orderState.orders.length} Orders Live',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF34D399),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
+                          )
                           .animate()
                           .fade(duration: 350.ms)
                           .slideY(begin: 0.1, end: 0),
@@ -191,73 +193,78 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
 
                       // Horizontally Scrollable Level Tabs (L1 - L7) (Filter button deleted as requested)
                       SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: AppConstants.orderLevels.map((lvl) {
-                            final isSelected = lvl == orderState.selectedLevel;
-                            return GestureDetector(
-                              onTap: () {
-                                if (!isSelected) {
-                                  orderNotifier.changeLevel(lvl);
-                                }
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 220),
-                                curve: Curves.easeOutCubic,
-                                margin: const EdgeInsets.only(right: 10),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 8.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: isSelected
-                                      ? const LinearGradient(
-                                          colors: [
-                                            Colors.white,
-                                            Color(0xFFE0F2FE),
-                                          ],
-                                        )
-                                      : null,
-                                  color: isSelected
-                                      ? null
-                                      : Colors.white.withValues(alpha: 0.16),
-                                  borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusFull,
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              children: AppConstants.orderLevels.map((lvl) {
+                                final isSelected =
+                                    lvl == orderState.selectedLevel;
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (!isSelected) {
+                                      orderNotifier.changeLevel(lvl);
+                                    }
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 220),
+                                    curve: Curves.easeOutCubic,
+                                    margin: const EdgeInsets.only(right: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 8.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: isSelected
+                                          ? const LinearGradient(
+                                              colors: [
+                                                Colors.white,
+                                                Color(0xFFE0F2FE),
+                                              ],
+                                            )
+                                          : null,
+                                      color: isSelected
+                                          ? null
+                                          : Colors.white.withValues(
+                                              alpha: 0.16,
+                                            ),
+                                      borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull,
+                                      ),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? const Color(0xFF38BDF8)
+                                            : Colors.white.withValues(
+                                                alpha: 0.25,
+                                              ),
+                                        width: isSelected ? 1.5 : 0.8,
+                                      ),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: const Color(0xFF38BDF8)
+                                                    .withValues(alpha: 0.40),
+                                                blurRadius: 12,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Text(
+                                      lvl,
+                                      style: GoogleFonts.spaceGrotesk(
+                                        color: isSelected
+                                            ? AppColors.brandPrimary
+                                            : Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.4,
+                                      ),
+                                    ),
                                   ),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? const Color(0xFF38BDF8)
-                                        : Colors.white.withValues(alpha: 0.25),
-                                    width: isSelected ? 1.5 : 0.8,
-                                  ),
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: const Color(0xFF38BDF8)
-                                                .withValues(alpha: 0.40),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Text(
-                                  lvl,
-                                  style: GoogleFonts.spaceGrotesk(
-                                    color: isSelected
-                                        ? AppColors.brandPrimary
-                                        : Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      )
+                                );
+                              }).toList(),
+                            ),
+                          )
                           .animate()
                           .fadeIn(duration: 400.ms)
                           .slideX(begin: 0.05, end: 0),
@@ -276,14 +283,8 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [
-                          const Color(0xFF142347),
-                          const Color(0xFF0F1A35),
-                        ]
-                      : [
-                          const Color(0xFFEBF3FE),
-                          const Color(0xFFF1F5F9),
-                        ],
+                      ? [const Color(0xFF142347), const Color(0xFF0F1A35)]
+                      : [const Color(0xFFEBF3FE), const Color(0xFFF1F5F9)],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
@@ -414,7 +415,8 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                             .withValues(alpha: isDark ? 0.22 : 0.12),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.30),
+                          color: const Color(0xFF10B981)
+                              .withValues(alpha: 0.30),
                           width: 0.8,
                         ),
                       ),
@@ -448,10 +450,7 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                   ),
                 ],
               ),
-            )
-                .animate()
-                .fade(duration: 350.ms)
-                .slideY(begin: 0.08, end: 0),
+            ).animate().fade(duration: 350.ms).slideY(begin: 0.08, end: 0),
 
             // ── Section 3: Orders Marketplace List with Colorful Card Themes ──
             Expanded(
@@ -463,41 +462,37 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                       ),
                     )
                   : orderState.orders.isEmpty
-                      ? _buildEmptyState(
-                          context,
-                          isDark,
-                          orderState.selectedLevel,
-                        )
-                      : RefreshIndicator(
-                          key: ValueKey(
-                            'buy_refresh_${animTrigger}_${orderState.selectedLevel}',
-                          ),
-                          onRefresh: _handleRefresh,
-                          color: AppColors.brandPrimary,
-                          backgroundColor: isDark
-                              ? const Color(0xFF131D38)
-                              : Colors.white,
-                          child: ListView.builder(
-                            key: ValueKey(
-                              'buy_list_${animTrigger}_${orderState.selectedLevel}',
-                            ),
-                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 80),
-                            physics: const BouncingScrollPhysics(
-                              parent: AlwaysScrollableScrollPhysics(),
-                            ),
-                            itemCount: orderState.orders.length,
-                            itemBuilder: (context, index) {
-                              final order = orderState.orders[index];
-                              return _buildOrderCard(
-                                context: context,
-                                order: order,
-                                ref: ref,
-                                index: index,
-                                isDark: isDark,
-                              );
-                            },
-                          ),
+                  ? _buildEmptyState(context, isDark, orderState.selectedLevel)
+                  : RefreshIndicator(
+                      key: ValueKey(
+                        'buy_refresh_${animTrigger}_${orderState.selectedLevel}',
+                      ),
+                      onRefresh: _handleRefresh,
+                      color: AppColors.brandPrimary,
+                      backgroundColor: isDark
+                          ? const Color(0xFF131D38)
+                          : Colors.white,
+                      child: ListView.builder(
+                        key: ValueKey(
+                          'buy_list_${animTrigger}_${orderState.selectedLevel}',
                         ),
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 80),
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        itemCount: orderState.orders.length,
+                        itemBuilder: (context, index) {
+                          final order = orderState.orders[index];
+                          return _buildOrderCard(
+                            context: context,
+                            order: order,
+                            ref: ref,
+                            index: index,
+                            isDark: isDark,
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -558,75 +553,118 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
     final borderColor = theme['borderColor'] as Color;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: bgColors,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: borderColor.withValues(alpha: isDark ? 0.38 : 0.32),
-          width: 1.3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: isDark ? 0.25 : 0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: bgColors,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: borderColor.withValues(alpha: isDark ? 0.38 : 0.32),
+              width: 1.3,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: isDark ? 0.25 : 0.08),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Card Top Row: Tier badge + PhonePe Guaranteed Shield & Final RP Pill
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Card Top Row: Tier badge + PhonePe Guaranteed Shield & Final RP Pill
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Tier Pill with matching accent background
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: accentColor
-                            .withValues(alpha: isDark ? 0.30 : 0.16),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: borderColor.withValues(alpha: 0.45),
-                          width: 0.8,
+                    Row(
+                      children: [
+                        // Tier Pill with matching accent background
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(
+                              alpha: isDark ? 0.30 : 0.16,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: borderColor.withValues(alpha: 0.45),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            order.level,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? borderColor : accentColor,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        order.level,
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? borderColor : accentColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
+                        const SizedBox(width: 6),
 
-                    // PhonePe Guaranteed Badge
+                        // PhonePe Guaranteed Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: isDark ? 0.22 : 0.14),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFF10B981)
+                                  .withValues(alpha: 0.30),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                LucideIcons.shieldCheck,
+                                size: 11,
+                                color: Color(0xFF10B981),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'PhonePe Guaranteed',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? const Color(0xFF34D399)
+                                      : const Color(0xFF059669),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Final RP Pill (Emerald green glowing pill)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3.5,
+                        horizontal: 9,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF10B981)
-                            .withValues(alpha: isDark ? 0.22 : 0.14),
-                        borderRadius: BorderRadius.circular(6),
+                            .withValues(alpha: isDark ? 0.24 : 0.16),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.30),
+                          color: const Color(0xFF10B981)
+                              .withValues(alpha: 0.40),
                           width: 0.8,
                         ),
                       ),
@@ -634,19 +672,19 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
-                            LucideIcons.shieldCheck,
+                            LucideIcons.sparkles,
                             size: 11,
                             color: Color(0xFF10B981),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'PhonePe Guaranteed',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                            'Final: ${order.finalRp} RP',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
                               color: isDark
                                   ? const Color(0xFF34D399)
-                                  : const Color(0xFF059669),
+                                  : const Color(0xFF047857),
                             ),
                           ),
                         ],
@@ -655,313 +693,273 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                   ],
                 ),
 
-                // Final RP Pill (Emerald green glowing pill)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981)
-                        .withValues(alpha: isDark ? 0.24 : 0.16),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.40),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.sparkles,
-                        size: 11,
-                        color: Color(0xFF10B981),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Final: ${order.finalRp} RP',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? const Color(0xFF34D399)
-                              : const Color(0xFF047857),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                const SizedBox(height: 12),
 
-            const SizedBox(height: 12),
-
-            // Card Middle Row: Amount & Quantity on Left, 3D Receive Button on Right
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Left: Large Investment Amount & Order Quantity
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
+                // Card Middle Row: Amount & Quantity on Left, 3D Receive Button on Right
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Left: Large Investment Amount & Order Quantity
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '₹',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? borderColor : accentColor,
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              '${order.orderAmount}',
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.6,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF0F172A),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                '₹',
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? borderColor : accentColor,
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 2),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '${order.orderAmount}',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.6,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'Order Amount',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF475569),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'Order Amount',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+
+                          const SizedBox(height: 5),
+
+                          // Order Quantity with Box Icon
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.layers,
+                                size: 13,
+                                color: isDark ? borderColor : accentColor,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Available: ${order.orderQuantity} orders',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? const Color(0xFFCBD5E1)
+                                      : const Color(0xFF334155),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    // Right: 3D Filled Receive Button
+                    GestureDetector(
+                      onTap: () => _handleReceiveOrder(context, ref, order),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF2563EB)
+                                  .withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Receive',
                               style: GoogleFonts.inter(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF475569),
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.2,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            const Icon(
+                              LucideIcons.arrowRight,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+                  ],
+                ),
 
-                      const SizedBox(height: 5),
+                const SizedBox(height: 10),
 
-                      // Order Quantity with Box Icon
-                      Row(
+                // Card Bottom Strip: Reward & Bonus & Return Note
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    // Reward Chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF0F172A).withValues(alpha: 0.8)
+                            : Colors.white.withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFCBD5E1),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            LucideIcons.layers,
-                            size: 13,
-                            color: isDark ? borderColor : accentColor,
+                          const Icon(
+                            LucideIcons.gift,
+                            size: 11,
+                            color: Color(0xFFD97706),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 4),
                           Text(
-                            'Available: ${order.orderQuantity} orders',
+                            'Reward: ₹${order.reward}',
                             style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
                               color: isDark
-                                  ? const Color(0xFFCBD5E1)
-                                  : const Color(0xFF334155),
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Right: 3D Filled Receive Button
-                GestureDetector(
-                  onTap: () => _handleReceiveOrder(context, ref, order),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
                     ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF2563EB),
-                          Color(0xFF1D4ED8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+
+                    // Bonus Pill
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3.5,
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2563EB).withValues(alpha: 0.35),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981)
+                            .withValues(alpha: isDark ? 0.25 : 0.18),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFF10B981)
+                              .withValues(alpha: 0.40),
+                          width: 0.8,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Receive',
-                          style: GoogleFonts.inter(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.2,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.sparkle,
+                            size: 10,
+                            color: Color(0xFF10B981),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          LucideIcons.arrowRight,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                      ],
+                          const SizedBox(width: 3),
+                          Text(
+                            '+₹${order.bonus} Bonus',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? const Color(0xFF34D399)
+                                  : const Color(0xFF047857),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+
+                    // PhonePe Auto-return note
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1)
+                            .withValues(alpha: isDark ? 0.20 : 0.14),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFF6366F1)
+                              .withValues(alpha: 0.30),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.repeat,
+                            size: 10,
+                            color: Color(0xFF6366F1),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Auto-return upon ₹100 Profit',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? const Color(0xFFA5B4FC)
+                                  : const Color(0xFF4338CA),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-
-            const SizedBox(height: 10),
-
-            // Card Bottom Strip: Reward & Bonus & Return Note
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                // Reward Chip
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF0F172A).withValues(alpha: 0.8)
-                        : Colors.white.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFCBD5E1),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.gift,
-                        size: 11,
-                        color: Color(0xFFD97706),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Reward: ₹${order.reward}',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Bonus Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981)
-                        .withValues(alpha: isDark ? 0.25 : 0.18),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.40),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.sparkle,
-                        size: 10,
-                        color: Color(0xFF10B981),
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '+₹${order.bonus} Bonus',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? const Color(0xFF34D399)
-                              : const Color(0xFF047857),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // PhonePe Auto-return note
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 3.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1)
-                        .withValues(alpha: isDark ? 0.20 : 0.14),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: const Color(0xFF6366F1).withValues(alpha: 0.30),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.repeat,
-                        size: 10,
-                        color: Color(0xFF6366F1),
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        'Auto-return upon ₹100 Profit',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? const Color(0xFFA5B4FC)
-                              : const Color(0xFF4338CA),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    )
+          ),
+        )
         .animate(delay: Duration(milliseconds: 65 * index))
         .fadeIn(duration: 350.ms, curve: Curves.easeOut)
         .slideY(
@@ -981,66 +979,68 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
   /// Empty state when no orders are found for the selected tier
   Widget _buildEmptyState(BuildContext context, bool isDark, String level) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                border: Border.all(
-                  color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                  width: 1.5,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                    border: Border.all(
+                      color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      LucideIcons.packageOpen,
+                      size: 32,
+                      color: Color(0xFF0284C7),
+                    ),
+                  ),
                 ),
-              ),
-              child: const Center(
-                child: Icon(
-                  LucideIcons.packageOpen,
-                  size: 32,
-                  color: Color(0xFF0284C7),
+                const SizedBox(height: 16),
+                Text(
+                  'No Orders in Tier $level',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Orders in Tier $level',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'All current orders in $level are currently fulfilled. Switch tiers or refresh to check updated market listings.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 18),
-            ElevatedButton.icon(
-              onPressed: _handleRefresh,
-              icon: const Icon(LucideIcons.rotateCcw, size: 14),
-              label: const Text('Refresh Orders'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brandPrimary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 6),
+                Text(
+                  'All current orders in $level are currently fulfilled. Switch tiers or refresh to check updated market listings.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 18),
+                ElevatedButton.icon(
+                  onPressed: _handleRefresh,
+                  icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                  label: const Text('Refresh Orders'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.brandPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    )
+          ),
+        )
         .animate()
         .fadeIn(duration: 400.ms)
         .scale(begin: const Offset(0.92, 0.92), end: const Offset(1, 1));
@@ -1070,390 +1070,415 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
 
     showDialog(
       context: context,
-      builder: (dialogCtx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF142347),
-                      const Color(0xFF0A1428),
-                    ]
-                  : [
-                      const Color(0xFFE2F0FD),
-                      const Color(0xFFEBF5FE),
-                      const Color(0xFFF0F7FF),
+      builder: (dialogCtx) =>
+          Dialog(
+                backgroundColor: Colors.transparent,
+                insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [const Color(0xFF142347), const Color(0xFF0A1428)]
+                          : [
+                              const Color(0xFFE2F0FD),
+                              const Color(0xFFEBF5FE),
+                              const Color(0xFFF0F7FF),
+                            ],
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF38BDF8).withValues(alpha: 0.45)
+                          : const Color(0xFF0284C7).withValues(alpha: 0.50),
+                      width: 1.6,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0284C7)
+                            .withValues(alpha: isDark ? 0.45 : 0.20),
+                        blurRadius: 28,
+                        offset: const Offset(0, 10),
+                      ),
                     ],
-            ),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(
-              color: isDark
-                  ? const Color(0xFF38BDF8).withValues(alpha: 0.45)
-                  : const Color(0xFF0284C7).withValues(alpha: 0.50),
-              width: 1.6,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0284C7)
-                    .withValues(alpha: isDark ? 0.45 : 0.20),
-                blurRadius: 28,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Dialog Header: Icon, Title, Subtitle and Close
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0284C7), Color(0xFF2563EB)],
+                      // Dialog Header: Icon, Title, Subtitle and Close
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF0284C7),
+                                      Color(0xFF2563EB),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0284C7)
+                                          .withValues(alpha: 0.35),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  LucideIcons.shoppingBag,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Receive Order',
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Review earnings & auto-return',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0284C7)
-                                  .withValues(alpha: 0.35),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                          InkWell(
+                            onTap: () => Navigator.pop(dialogCtx),
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : const Color(0xFFE2E8F0),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(LucideIcons.x, size: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Highlighted Investment Hero Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? [
+                                    const Color(0xFF1E2E5A),
+                                    const Color(0xFF131D38),
+                                  ]
+                                : [
+                                    const Color(0xFFE0F2FE),
+                                    const Color(0xFFF0FDF4),
+                                  ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF38BDF8)
+                                .withValues(alpha: 0.35),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'INVESTMENT AMOUNT',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                    color: isDark
+                                        ? const Color(0xFF38BDF8)
+                                        : const Color(0xFF0369A1),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '₹$amountStr',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0284C7)
+                                    .withValues(alpha: isDark ? 0.30 : 0.18),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFF0284C7)
+                                      .withValues(alpha: 0.40),
+                                ),
+                              ),
+                              child: Text(
+                                '${order.level} Tier',
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? const Color(0xFF38BDF8)
+                                      : const Color(0xFF0284C7),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          LucideIcons.shoppingBag,
-                          size: 18,
-                          color: Colors.white,
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Breakdown Card
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? [
+                                    const Color(0xFF0F1A33),
+                                    const Color(0xFF091224),
+                                  ]
+                                : [Colors.white, const Color(0xFFF0FDF4)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF38BDF8)
+                                      .withValues(alpha: 0.20)
+                                : const Color(0xFF0284C7)
+                                      .withValues(alpha: 0.25),
+                            width: 1.1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDialogRow(
+                              'Brokerage Reward',
+                              '+₹$rewardStr',
+                              isDark,
+                              icon: LucideIcons.gift,
+                              color: const Color(0xFFD97706),
+                            ),
+                            const Divider(height: 18),
+                            _buildDialogRow(
+                              'Special Bonus',
+                              '+₹$bonusStr',
+                              isDark,
+                              icon: LucideIcons.sparkle,
+                              color: const Color(0xFF10B981),
+                            ),
+                            const Divider(height: 18),
+                            _buildDialogRow(
+                              'Final Credited RP',
+                              '$finalRpStr RP',
+                              isDark,
+                              isBold: true,
+                              icon: LucideIcons.sparkles,
+                              color: const Color(0xFF059669),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                      const SizedBox(height: 12),
+
+                      // PhonePe Auto-Return Information Banner
+                      Container(
+                        padding: const EdgeInsets.all(11),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1)
+                              .withValues(alpha: isDark ? 0.16 : 0.10),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF6366F1)
+                                .withValues(alpha: 0.28),
+                            width: 0.9,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF5F259F),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Text(
+                                'पे',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Automatic PhonePe Return: When cumulative profit hits ₹100, capital + profits auto-transfer to your PhonePe account.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? const Color(0xFFA5B4FC)
+                                      : const Color(0xFF4338CA),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      // Action Buttons: Cancel and Confirm Order
+                      Row(
                         children: [
-                          Text(
-                            'Receive Order',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(dialogCtx),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
+                                side: BorderSide(
+                                  color: isDark
+                                      ? Colors.white30
+                                      : const Color(0xFFCBD5E1),
+                                  width: 1.2,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : const Color(0xFF475569),
+                                ),
+                              ),
                             ),
                           ),
-                          Text(
-                            'Review earnings & auto-return',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                Navigator.pop(dialogCtx);
+                                CustomLoader.showOverlay(
+                                  context,
+                                  message: 'Reserving Order & Crediting RP on Live Gateway...',
+                                );
+
+                                final success = await ref
+                                    .read(orderProvider.notifier)
+                                    .receiveOrder(order.id);
+
+                                if (!context.mounted) return;
+                                CustomLoader.dismiss(context);
+
+                                if (success) {
+                                  CustomSnackBar.showSuccess(
+                                    context: context,
+                                    message:
+                                        'Successfully received order! $finalRpStr RP credited.',
+                                    icon: Icons.check_circle_rounded,
+                                  );
+                                } else {
+                                  CustomSnackBar.showError(
+                                    context: context,
+                                    message: 'Order is no longer available or could not be received.',
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.brandPrimary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Confirm Order',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(LucideIcons.arrowRight, size: 15),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  InkWell(
-                    onTap: () => Navigator.pop(dialogCtx),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : const Color(0xFFE2E8F0),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(LucideIcons.x, size: 16),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Highlighted Investment Hero Pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
                 ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? [const Color(0xFF1E2E5A), const Color(0xFF131D38)]
-                        : [const Color(0xFFE0F2FE), const Color(0xFFF0FDF4)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'INVESTMENT AMOUNT',
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: isDark
-                                ? const Color(0xFF38BDF8)
-                                : const Color(0xFF0369A1),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '₹$amountStr',
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0284C7)
-                            .withValues(alpha: isDark ? 0.30 : 0.18),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFF0284C7).withValues(alpha: 0.40),
-                        ),
-                      ),
-                      child: Text(
-                        '${order.level} Tier',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? const Color(0xFF38BDF8)
-                              : const Color(0xFF0284C7),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Breakdown Card
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? [const Color(0xFF0F1A33), const Color(0xFF091224)]
-                        : [Colors.white, const Color(0xFFF0FDF4)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF38BDF8).withValues(alpha: 0.20)
-                        : const Color(0xFF0284C7).withValues(alpha: 0.25),
-                    width: 1.1,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _buildDialogRow(
-                      'Brokerage Reward',
-                      '+₹$rewardStr',
-                      isDark,
-                      icon: LucideIcons.gift,
-                      color: const Color(0xFFD97706),
-                    ),
-                    const Divider(height: 18),
-                    _buildDialogRow(
-                      'Special Bonus',
-                      '+₹$bonusStr',
-                      isDark,
-                      icon: LucideIcons.sparkle,
-                      color: const Color(0xFF10B981),
-                    ),
-                    const Divider(height: 18),
-                    _buildDialogRow(
-                      'Final Credited RP',
-                      '$finalRpStr RP',
-                      isDark,
-                      isBold: true,
-                      icon: LucideIcons.sparkles,
-                      color: const Color(0xFF059669),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // PhonePe Auto-Return Information Banner
-              Container(
-                padding: const EdgeInsets.all(11),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1)
-                      .withValues(alpha: isDark ? 0.16 : 0.10),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.28),
-                    width: 0.9,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF5F259F),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text(
-                        'पे',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Automatic PhonePe Return: When cumulative profit hits ₹100, capital + profits auto-transfer to your PhonePe account.',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? const Color(0xFFA5B4FC)
-                              : const Color(0xFF4338CA),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              // Action Buttons: Cancel and Confirm Order
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogCtx),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        side: BorderSide(
-                          color:
-                              isDark ? Colors.white30 : const Color(0xFFCBD5E1),
-                          width: 1.2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: GoogleFonts.inter(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color:
-                              isDark ? Colors.white70 : const Color(0xFF475569),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(dialogCtx);
-                        CustomLoader.showOverlay(
-                          context,
-                          message: 'Reserving Order & Crediting RP...',
-                        );
-                        await Future.delayed(
-                          const Duration(milliseconds: 900),
-                        );
-                        if (!context.mounted) return;
-                        CustomLoader.dismiss(context);
-
-                        ref.read(orderProvider.notifier).receiveOrder(order.id);
-                        ref.read(userProvider.notifier).addEarnings(
-                              order.reward + order.bonus,
-                            );
-
-                        CustomSnackBar.showSuccess(
-                          context: context,
-                          message:
-                              'Successfully received order! $finalRpStr RP credited.',
-                          icon: Icons.check_circle_rounded,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandPrimary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Confirm Order',
-                            style: GoogleFonts.inter(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(LucideIcons.arrowRight, size: 15),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      )
-          .animate()
-          .scale(
-            begin: const Offset(0.90, 0.90),
-            end: const Offset(1, 1),
-            curve: Curves.easeOutBack,
-            duration: 350.ms,
-          )
-          .fadeIn(duration: 350.ms),
+              )
+              .animate()
+              .scale(
+                begin: const Offset(0.90, 0.90),
+                end: const Offset(1, 1),
+                curve: Curves.easeOutBack,
+                duration: 350.ms,
+              )
+              .fadeIn(duration: 350.ms),
     );
   }
 
@@ -1475,7 +1500,8 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
               Icon(
                 icon,
                 size: 14,
-                color: color ??
+                color:
+                    color ??
                     (isDark ? const Color(0xFF38BDF8) : AppColors.brandPrimary),
               ),
               const SizedBox(width: 6),
@@ -1485,8 +1511,9 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
               style: GoogleFonts.inter(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
-                color:
-                    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -1501,8 +1528,8 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 13.5,
                 fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
-                color: color ??
-                    (isDark ? Colors.white : const Color(0xFF0F172A)),
+                color:
+                    color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
               ),
             ),
           ),

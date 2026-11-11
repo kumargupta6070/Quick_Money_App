@@ -63,12 +63,12 @@ class OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
-      id: json['id'] as int? ?? 1,
-      orderAmount: (json['order_amount'] as num?)?.toDouble() ?? 0.0,
-      orderQuantity: json['order_quantity'] as int? ?? 1,
-      reward: (json['reward'] as num?)?.toDouble() ?? 0.0,
-      bonus: (json['bonus'] as num?)?.toDouble() ?? 2.0,
-      finalRp: (json['final_rp'] as num?)?.toDouble() ?? 0.0,
+      id: int.tryParse(json['id']?.toString() ?? '1') ?? 1,
+      orderAmount: double.tryParse(json['order_amount']?.toString() ?? '0') ?? 0.0,
+      orderQuantity: int.tryParse(json['order_quantity']?.toString() ?? '1') ?? 1,
+      reward: double.tryParse(json['reward']?.toString() ?? '0') ?? 0.0,
+      bonus: double.tryParse(json['bonus']?.toString() ?? '2.0') ?? 2.0,
+      finalRp: double.tryParse(json['final_rp']?.toString() ?? '0') ?? 0.0,
       level: json['level'] as String? ?? 'L1',
       status: OrderStatus.values.firstWhere(
         (e) => e.name == json['status'],

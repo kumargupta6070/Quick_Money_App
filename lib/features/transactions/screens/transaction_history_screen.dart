@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../../core/mock_data/app_mock_data.dart';
+import '../../../core/providers/transaction_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -16,15 +17,16 @@ import '../../../shared/widgets/animated_ambient_background.dart';
 /// Designed adhering to the ICU Mobile App aesthetic with animated entrance,
 /// royal curved hero header, filter tabs, colorful glowing receipt cards,
 /// and interactive detail modals.
-class TransactionHistoryScreen extends StatefulWidget {
+class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  State<TransactionHistoryScreen> createState() =>
+  ConsumerState<TransactionHistoryScreen> createState() =>
       _TransactionHistoryScreenState();
 }
 
-class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+class _TransactionHistoryScreenState
+    extends ConsumerState<TransactionHistoryScreen> {
   int _animSeed = 0;
   String _selectedFilter = 'all'; // 'all', 'payout', 'deposit'
 
@@ -643,7 +645,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allTransactions = AppMockData.transactions;
+    final allTransactions = ref.watch(transactionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final filteredTransactions = allTransactions.where((tx) {
@@ -661,7 +663,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             setState(() => _animSeed++);
-            await Future.delayed(const Duration(milliseconds: 300));
+            await ref.read(transactionProvider.notifier).fetchTransactions();
           },
           child: SingleChildScrollView(
             key: ValueKey('tx_scroll_${_animSeed}_$_selectedFilter'),

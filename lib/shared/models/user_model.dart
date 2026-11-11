@@ -61,16 +61,17 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as int? ?? 1,
+      id: int.tryParse(json['id']?.toString() ?? '1') ?? 1,
       mobile: json['mobile'] as String? ?? '',
       inviteCode: json['invite_code'] as String? ?? '',
       referredBy: json['referred_by'] as String?,
-      balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      balance: double.tryParse(json['balance']?.toString() ?? '0') ?? 0.0,
       level: json['level'] as String? ?? 'L1',
       avatar: json['avatar'] as String?,
-      isVerified: json['is_verified'] as bool? ?? true,
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
+      isVerified: json['is_verified'] as bool? ?? (json['status'] == 'active'),
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
     );
   }
 }
-
