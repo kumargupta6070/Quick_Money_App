@@ -14,10 +14,12 @@ class ApiEndpoints {
 
   // 2. Users
   static const String profile = '/users/profile';
+  static const String changePassword = '/users/change-password';
 
   // 3. Wallets & Payment APP Bind (PhonePe)
   static const String wallet = '/wallets';
   static const String bindWallet = '/wallets/bind';
+  static const String unbindWallet = '/wallets/unbind';
 
   // 4. Buy RP Orders
   static const String orders = '/orders';
@@ -38,7 +40,11 @@ class ApiEndpoints {
   // 8. Notifications
   static const String notifications = '/notifications';
 
-  // 9. Admin Operations
+  // 9. Newbie Rewards
+  static const String newbieRewards = '/rewards/newbie';
+  static const String claimReward = '/rewards/claim';
+
+  // 10. Admin Operations
   static const String adminStats = '/admin/stats';
   static const String adminPendingOrders = '/admin/pending-orders';
   static const String adminApproveOrder = '/admin/orders/approve';

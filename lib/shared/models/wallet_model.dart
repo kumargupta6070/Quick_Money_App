@@ -19,6 +19,15 @@ class WalletModel {
     this.boundAt,
   });
 
+  static const empty = WalletModel(
+    id: 0,
+    paymentApp: 'phonepe',
+    upiId: '',
+    status: WalletStatus.pending,
+  );
+
+  bool get isBound => upiId.trim().isNotEmpty;
+
   WalletModel copyWith({
     int? id,
     String? paymentApp,

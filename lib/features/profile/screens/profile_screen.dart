@@ -8,10 +8,13 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
+import '../../../core/providers/referral_provider.dart';
+import '../../../core/providers/reward_provider.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/providers/wallet_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../../../shared/widgets/animated_counter.dart';
@@ -30,16 +33,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _hideMobile = false;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(userProvider.notifier).fetchProfile();
+      ref.read(walletProvider.notifier).fetchWallet();
+      ref.read(referralProvider.notifier).fetchTeamOverview();
+      ref.read(rewardProvider.notifier).fetchNewbieRewards();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
+    final wallet = ref.watch(walletProvider);
+    final team = ref.watch(referralProvider);
+    final rewards = ref.watch(rewardProvider);
     final animTrigger = ref.watch(mineAnimationTriggerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final rawMobile = user.mobile.isNotEmpty ? user.mobile : user.email;
     final displayMobile = _hideMobile
-        ? (user.mobile.length >= 6
-              ? '${user.mobile.substring(0, 3)}****${user.mobile.substring(user.mobile.length - 3)}'
+        ? (rawMobile.length >= 6
+              ? '${rawMobile.substring(0, 3)}****${rawMobile.substring(rawMobile.length - 3)}'
               : '*******')
-        : user.mobile;
+        : rawMobile;
+
+    final l1PercentNum =
+        int.tryParse(team.level1Percent.replaceAll('%', '')) ?? 5;
+    final l2PercentNum =
+        int.tryParse(team.level2Percent.replaceAll('%', '')) ?? 3;
+    final l3PercentNum =
+        int.tryParse(team.level3Percent.replaceAll('%', '')) ?? 1;
+    final totalRebateYield = l1PercentNum + l2PercentNum + l3PercentNum;
 
     return Scaffold(
       body: AnimatedAmbientBackground(
@@ -50,6 +76,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             await Future.wait([
               ref.read(userProvider.notifier).fetchProfile(),
               ref.read(walletProvider.notifier).fetchWallet(),
+              ref.read(referralProvider.notifier).fetchTeamOverview(),
+              ref.read(rewardProvider.notifier).fetchNewbieRewards(),
             ]);
           },
           child: SingleChildScrollView(
@@ -60,7 +88,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Column(
               children: [
                 // 1. Royal FinTech Curved Hero Header with Glowing Accents
-                _buildHeroHeader(context, user, displayMobile, isDark)
+                _buildHeroHeader(
+                      context,
+                      user,
+                      wallet,
+                      team,
+                      displayMobile,
+                      totalRebateYield,
+                      isDark,
+                    )
                     .animate()
                     .fadeIn(duration: 380.ms)
                     .slideY(begin: -0.06, end: 0, curve: Curves.easeOutCubic),
@@ -86,7 +122,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 // 3. Team 3-Level Rebate Card (Vibrant Coral/Rose FinTech Banner)
                 Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildTeamRebateCard(context, isDark),
+                      child: _buildTeamRebateCard(
+                        context,
+                        team,
+                        totalRebateYield,
+                        isDark,
+                      ),
                     )
                     .animate()
                     .fadeIn(delay: 140.ms, duration: 400.ms)
@@ -102,7 +143,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 // 4. Essential FinTech Feature Services (Color-coded Menu)
                 Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildServicesCard(context, isDark),
+                      child: _buildServicesCard(
+                        context,
+                        wallet,
+                        rewards,
+                        isDark,
+                      ),
                     )
                     .animate()
                     .fadeIn(delay: 210.ms, duration: 400.ms)
@@ -158,7 +204,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildHeroHeader(
     BuildContext context,
     dynamic user,
+    WalletModel wallet,
+    TeamOverview team,
     String displayMobile,
+    int totalRebateYield,
     bool isDark,
   ) {
     return Container(
@@ -497,9 +546,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       children: [
                         _buildStatColumn(
                           label: 'Account Balance',
-                          value: '₹${user.balance.toStringAsFixed(2)}',
+                          value: CurrencyFormatter.format(user.balance),
                           valueColor: Colors.white,
                           icon: LucideIcons.wallet,
+                          onTap: () => context.push('/daily-details'),
                         ),
                         Container(
                           width: 1,
@@ -508,9 +558,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         _buildStatColumn(
                           label: 'Team Tier',
-                          value: '3-Level (12%)',
+                          value: '3-Level ($totalRebateYield%)',
                           valueColor: const Color(0xFFFDE68A),
                           icon: LucideIcons.users,
+                          onTap: () => context.push('/team'),
                         ),
                         Container(
                           width: 1,
@@ -519,9 +570,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         _buildStatColumn(
                           label: 'KYC Status',
-                          value: 'Verified',
-                          valueColor: const Color(0xFF86EFAC),
-                          icon: LucideIcons.shieldCheck,
+                          value: wallet.isBound ? 'Verified' : 'Unbound',
+                          valueColor: wallet.isBound
+                              ? const Color(0xFF86EFAC)
+                              : const Color(0xFFFBBF24),
+                          icon: wallet.isBound
+                              ? LucideIcons.shieldCheck
+                              : LucideIcons.alertCircle,
+                          onTap: () => context.push('/bind-payment'),
                         ),
                       ],
                     ),
@@ -540,35 +596,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String value,
     required Color valueColor,
     required IconData icon,
+    VoidCallback? onTap,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
+    return InkWell(
+      onTap: onTap != null
+          ? () {
+              HapticFeedback.lightImpact();
+              onTap();
+            }
+          : null,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 11, color: Colors.white70),
-            const SizedBox(width: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 11, color: Colors.white70),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.78),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
             Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.78),
+              value,
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: valueColor,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: valueColor,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -727,7 +796,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: InkWell(
                         onTap: () {
                           HapticFeedback.lightImpact();
-                          context.push('/daily-details');
+                          context.go('/buy-rp');
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
@@ -869,7 +938,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   /// Team 3-Level Rebate Card (Coral/Rose FinTech Banner)
-  Widget _buildTeamRebateCard(BuildContext context, bool isDark) {
+  Widget _buildTeamRebateCard(
+    BuildContext context,
+    TeamOverview team,
+    int totalRebateYield,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -988,7 +1062,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 4),
 
                     Text(
-                      'Invite friends to earn up to 12% perpetual daily commissions on every trade.',
+                      'Invite friends to earn up to $totalRebateYield% perpetual daily commissions on every trade.',
                       style: GoogleFonts.inter(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
@@ -1033,11 +1107,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // 3-Tier Commission Breakdown Pills
           Row(
             children: [
-              _buildTierChip('L1 Direct: 6%', const Color(0xFFEF4444), isDark),
+              _buildTierChip(
+                'L1 Direct: ${team.level1Percent}',
+                const Color(0xFFEF4444),
+                isDark,
+              ),
               const SizedBox(width: 6),
-              _buildTierChip('L2 Team: 4%', const Color(0xFFF59E0B), isDark),
+              _buildTierChip(
+                'L2 Team: ${team.level2Percent}',
+                const Color(0xFFF59E0B),
+                isDark,
+              ),
               const SizedBox(width: 6),
-              _buildTierChip('L3 Sub: 2%', const Color(0xFF8B5CF6), isDark),
+              _buildTierChip(
+                'L3 Sub: ${team.level3Percent}',
+                const Color(0xFF8B5CF6),
+                isDark,
+              ),
             ],
           ),
 
@@ -1124,7 +1210,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   /// Essential FinTech Feature Services (Color-coded Menu)
-  Widget _buildServicesCard(BuildContext context, bool isDark) {
+  Widget _buildServicesCard(
+    BuildContext context,
+    WalletModel wallet,
+    NewbieRewardsState rewards,
+    bool isDark,
+  ) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1172,13 +1263,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         fontSize: 12.5,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.6,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF10B981).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
@@ -1217,8 +1313,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             iconColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
             title: 'Newbie Rewards',
             subtitle: 'Claim sign-in & daily starter rewards',
-            badgeText: '+₹100 FREE',
-            badgeGradient: const [Color(0xFF059669), Color(0xFF10B981)],
+            badgeText:
+                '${rewards.completedCount}/${rewards.totalTasks} Claimed',
+            badgeGradient: rewards.completedCount == rewards.totalTasks
+                ? const [Color(0xFF059669), Color(0xFF10B981)]
+                : const [Color(0xFFF59E0B), Color(0xFFD97706)],
             tileBgColors: isDark
                 ? [const Color(0xFF261904), const Color(0xFF1A1102)]
                 : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
@@ -1235,9 +1334,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             iconColors: const [Color(0xFF6B21A8), Color(0xFF9333EA)],
             title: 'Bind payment APP',
             subtitle: 'PhonePe, GPay & UPI auto-settlement',
-            badgeText: 'PhonePe Active',
-            badgeGradient: const [Color(0xFF6B21A8), Color(0xFF8A2BE2)],
-            hasLiveDot: true,
+            badgeText: wallet.isBound ? 'PhonePe Active' : 'Not Bound',
+            badgeGradient: wallet.isBound
+                ? const [Color(0xFF059669), Color(0xFF10B981)]
+                : const [Color(0xFFE11D48), Color(0xFFF43F5E)],
+            hasLiveDot: wallet.isBound,
             tileBgColors: isDark
                 ? [const Color(0xFF230D3B), const Color(0xFF150724)]
                 : [const Color(0xFFFAF5FF), const Color(0xFFF3E8FF)],
@@ -1340,7 +1441,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               HapticFeedback.lightImpact();
               CustomSnackBar.showInfo(
                 context: context,
-                message: 'Official Community Channel: Join Telegram & WhatsApp.',
+                message:
+                    'Official Community Channel: Join Telegram & WhatsApp.',
                 icon: LucideIcons.send,
               );
             },
@@ -1366,175 +1468,197 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: tileBgColors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: tileBorderColor.withValues(alpha: isDark ? 0.35 : 0.28),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: tileBorderColor.withValues(alpha: isDark ? 0.15 : 0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Colorful 3D Icon Container
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: iconColors,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: tileBgColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: tileBorderColor.withValues(
+                      alpha: isDark ? 0.35 : 0.28,
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: iconColors.first.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: tileBorderColor.withValues(
+                        alpha: isDark ? 0.15 : 0.06,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(icon, size: 21, color: Colors.white),
-                  ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-
-                const SizedBox(width: 12),
-
-                // Title & Subtitle
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                child: Row(
+                  children: [
+                    // Colorful 3D Icon Container
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: iconColors,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 1.2,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: iconColors.first.withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 6),
-
-                // Optional Gradient Badge Pill
-                if (badgeText != null) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      gradient: badgeGradient != null
-                          ? LinearGradient(
-                              colors: badgeGradient,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null,
-                      color: badgeGradient == null
-                          ? (isDark
-                              ? Colors.white.withValues(alpha: 0.12)
-                              : const Color(0xFFF1F5F9))
-                          : null,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: badgeGradient != null
-                          ? [
-                              BoxShadow(
-                                color: badgeGradient.first.withValues(alpha: 0.35),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
+                      child: Center(
+                        child: Icon(icon, size: 21, color: Colors.white),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (hasLiveDot) ...[
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
+
+                    const SizedBox(width: 12),
+
+                    // Title & Subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.2,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(width: 4),
-                        ],
-                        Text(
-                          badgeText,
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
 
-                // Chevron Pill
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white12 : Colors.white.withValues(alpha: 0.8),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                    const SizedBox(width: 6),
+
+                    // Optional Gradient Badge Pill
+                    if (badgeText != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: badgeGradient != null
+                              ? LinearGradient(
+                                  colors: badgeGradient,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
+                          color: badgeGradient == null
+                              ? (isDark
+                                    ? Colors.white.withValues(alpha: 0.12)
+                                    : const Color(0xFFF1F5F9))
+                              : null,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: badgeGradient != null
+                              ? [
+                                  BoxShadow(
+                                    color: badgeGradient.first.withValues(
+                                      alpha: 0.35,
+                                    ),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (hasLiveDot) ...[
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              badgeText,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+
+                    // Chevron Pill
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white12
+                            : Colors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white12
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Icon(
+                        LucideIcons.chevronRight,
+                        size: 13,
+                        color: isDark
+                            ? Colors.white70
+                            : const Color(0xFF475569),
+                      ),
                     ),
-                  ),
-                  child: Icon(
-                    LucideIcons.chevronRight,
-                    size: 13,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    )
+        )
         .animate()
         .fadeIn(delay: (160 + index * 40).ms, duration: 350.ms)
         .slideX(
@@ -1668,12 +1792,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.45 : 0.35),
+              color: const Color(0xFFEF4444)
+                  .withValues(alpha: isDark ? 0.45 : 0.35),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.30 : 0.15),
+                color: const Color(0xFFEF4444)
+                    .withValues(alpha: isDark ? 0.30 : 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
@@ -1750,7 +1876,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       onPressed: () => Navigator.pop(dialogCtx),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
-                          color: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
+                          color: isDark
+                              ? Colors.white24
+                              : const Color(0xFFCBD5E1),
                           width: 1.3,
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1763,7 +1891,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ),
@@ -1780,7 +1910,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.38),
+                            color: const Color(0xFFEF4444)
+                                .withValues(alpha: 0.38),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),

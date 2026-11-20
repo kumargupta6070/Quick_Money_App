@@ -8,7 +8,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/profit_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
-import '../../../core/utils/custom_snackbar.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../../../shared/widgets/animated_counter.dart';
 
@@ -24,6 +23,22 @@ class DailyDetailsScreen extends ConsumerStatefulWidget {
 class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
   String _selectedDateFilter = 'Today';
   int _animSeed = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => _fetchForFilter('Today'));
+  }
+
+  Future<void> _fetchForFilter(String filter) async {
+    await ref.read(profitProvider.notifier).fetchDailyDetails(filter: filter);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _fetchForDate(String date) async {
+    await ref.read(profitProvider.notifier).fetchDailyDetails(date: date);
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +59,11 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             setState(() => _animSeed++);
-            await ref.read(profitProvider.notifier).fetchDailyDetails();
+            if (_selectedDateFilter.contains('-')) {
+              await _fetchForDate(_selectedDateFilter);
+            } else {
+              await _fetchForFilter(_selectedDateFilter);
+            }
           },
           child: SingleChildScrollView(
             key: ValueKey('daily_scroll_${_animSeed}_$_selectedDateFilter'),
@@ -316,16 +335,44 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
 
               const SizedBox(width: 8),
 
-              // Live Calendar Icon Button
+              // Live Calendar DatePicker Button
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   HapticFeedback.selectionClick();
-                  CustomSnackBar.showInfo(
+                  final picked = await showDatePicker(
                     context: context,
-                    message:
-                        'Audited financial ledger for current fiscal cycle.',
-                    icon: LucideIcons.calendar,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2024),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: isDark
+                            ? ThemeData.dark().copyWith(
+                                colorScheme: const ColorScheme.dark(
+                                  primary: Color(0xFF0284C7),
+                                  onPrimary: Colors.white,
+                                  surface: Color(0xFF0F172A),
+                                  onSurface: Colors.white,
+                                ),
+                              )
+                            : ThemeData.light().copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: Color(0xFF0284C7),
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: Color(0xFF0F172A),
+                                ),
+                              ),
+                        child: child!,
+                      );
+                    },
                   );
+                  if (picked != null) {
+                    final dateStr =
+                        '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                    setState(() => _selectedDateFilter = dateStr);
+                    await _fetchForDate(dateStr);
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.all(8),
@@ -380,6 +427,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() => _selectedDateFilter = f);
+                _fetchForFilter(f);
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -469,38 +517,46 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
         children: [
           // Top Row: Tag + Live Calendar Date
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        LucideIcons.sparkles,
+                        size: 13,
+                        color: Color(0xFF38BDF8),
+                      ),
                     ),
-                    child: const Icon(
-                      LucideIcons.sparkles,
-                      size: 13,
-                      color: Color(0xFF38BDF8),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _selectedDateFilter == 'Today'
+                            ? "TODAY'S TOTAL INCOME"
+                            : "${_selectedDateFilter.toUpperCase()} TOTAL INCOME",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "TODAY'S TOTAL INCOME",
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.6,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                  horizontal: 7,
+                  vertical: 3.5,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.10),
@@ -517,12 +573,14 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
                       size: 11,
                       color: Color(0xFF38BDF8),
                     ),
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 4),
                     Text(
-                      detail.date,
+                      detail.date.isNotEmpty
+                          ? detail.date
+                          : DateTime.now().toIso8601String().split('T')[0],
                       style: GoogleFonts.spaceGrotesk(
                         color: Colors.white,
-                        fontSize: 11.5,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -606,14 +664,19 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'PhonePe Auto-Return Target: ₹100.00',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white70,
+                  Flexible(
+                    child: Text(
+                      'PhonePe Auto-Return Target: ₹100.00',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white70,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 6),
                   Text(
                     '${(progress * 100).toStringAsFixed(1)}%',
                     style: GoogleFonts.spaceGrotesk(
@@ -661,7 +724,9 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '₹${remaining.toStringAsFixed(2)} remaining to trigger instant PhonePe auto-credit.',
+                    remaining <= 0
+                        ? 'Auto-return target reached! Auto-credit scheduled to PhonePe.'
+                        : '₹${remaining.toStringAsFixed(2)} remaining to trigger instant PhonePe auto-credit.',
                     style: GoogleFonts.inter(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w500,
@@ -722,7 +787,9 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
             children: [
               _buildMetricTile(
                 label: 'Order Count',
-                value: '${detail.purchaseNumber} Order',
+                value: detail.purchaseNumber == 1
+                    ? '1 Order'
+                    : '${detail.purchaseNumber} Orders',
                 icon: LucideIcons.receipt,
                 accentColor: const Color(0xFF0284C7),
                 customGradient: isDark
@@ -758,7 +825,9 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
             children: [
               _buildMetricTile(
                 label: 'Brokerage Yield',
-                value: '+₹${detail.brokerage.toStringAsFixed(2)}',
+                value: detail.brokerage > 0
+                    ? '+${CurrencyFormatter.format(detail.brokerage)}'
+                    : CurrencyFormatter.format(detail.brokerage),
                 icon: LucideIcons.trendingUp,
                 accentColor: const Color(0xFF10B981),
                 customGradient: isDark
@@ -775,7 +844,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
               const SizedBox(width: 10),
               _buildMetricTile(
                 label: 'Team Rebates',
-                value: '₹${detail.teamRebates.toStringAsFixed(2)}',
+                value: CurrencyFormatter.format(detail.teamRebates),
                 icon: LucideIcons.users,
                 accentColor: const Color(0xFF8B5CF6),
                 customGradient: isDark
@@ -903,7 +972,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
                           ],
                         ),
                         Text(
-                          '₹${detail.subordinateRebates.toStringAsFixed(2)}',
+                          CurrencyFormatter.format(detail.subordinateRebates),
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -944,7 +1013,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
                     Color(0xFFDCFCE7),
                     Color(0xFFECFDF5),
                   ],
-            text: '${detail.usdtRecharge.toStringAsFixed(4)} USDT = ₹0.00',
+            text: '${detail.usdtRecharge.toStringAsFixed(2)} USDT',
             status: 'TRC-20 Connected',
             delayMs: 380,
             isDark: isDark,
@@ -960,7 +1029,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
                     Color(0xFFFEE2E2),
                     Color(0xFFFFF1F2),
                   ],
-            text: '${detail.trxRecharge.toStringAsFixed(4)} TRX = ₹0.00',
+            text: '${detail.trxRecharge.toStringAsFixed(2)} TRX',
             status: 'Tron Gateway Active',
             delayMs: 420,
             isDark: isDark,
@@ -1014,7 +1083,9 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
             children: [
               _buildMetricTile(
                 label: 'Completed Sales',
-                value: '${detail.sellNumber} Orders',
+                value: detail.sellNumber == 1
+                    ? '1 Order'
+                    : '${detail.sellNumber} Orders',
                 icon: LucideIcons.checkCircle2,
                 accentColor: const Color(0xFFEF4444),
                 customGradient: isDark
@@ -1095,7 +1166,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
             children: [
               _buildMetricTile(
                 label: 'Activity Incentives',
-                value: '₹${detail.activityReward.toStringAsFixed(2)}',
+                value: CurrencyFormatter.format(detail.activityReward),
                 icon: LucideIcons.award,
                 accentColor: const Color(0xFFF59E0B),
                 customGradient: isDark
@@ -1111,7 +1182,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
               const SizedBox(width: 10),
               _buildMetricTile(
                 label: 'Special Bonuses',
-                value: '₹${detail.otherReward.toStringAsFixed(2)}',
+                value: CurrencyFormatter.format(detail.otherReward),
                 icon: LucideIcons.sparkles,
                 accentColor: const Color(0xFF8B5CF6),
                 customGradient: isDark
@@ -1142,28 +1213,35 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: isDark ? 0.25 : 0.15),
-                borderRadius: BorderRadius.circular(10),
+        Flexible(
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: isDark ? 0.25 : 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 16, color: accentColor),
               ),
-              child: Icon(icon, size: 16, color: accentColor),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              title,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
@@ -1218,7 +1296,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.all(13),
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -1251,7 +1329,7 @@ class _DailyDetailsScreenState extends ConsumerState<DailyDetailsScreen> {
                             label,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                               color: isDark
                                   ? const Color(0xFFCBD5E1)

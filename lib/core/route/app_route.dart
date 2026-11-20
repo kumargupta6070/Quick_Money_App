@@ -8,6 +8,7 @@ import '../../features/authentication/screens/login_screen.dart';
 import '../../features/authentication/screens/register_screen.dart';
 import '../../features/authentication/screens/otp_screen.dart';
 import '../../features/authentication/screens/forgot_password_screen.dart';
+import '../../features/authentication/screens/reset_password_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/buy_rp/screens/buy_rp_screen.dart';
 import '../../features/sell_rp/screens/sell_rp_screen.dart';
@@ -83,12 +84,14 @@ final GoRouter appRouter = GoRouter(
         String? email;
         String? password;
         String? invite;
+        String? type;
         if (state.extra is Map<String, dynamic>) {
           final map = state.extra as Map<String, dynamic>;
           mobile = map['mobile'] as String?;
           email = map['email'] as String?;
           password = map['password'] as String?;
           invite = map['invite'] as String?;
+          type = map['type'] as String?;
         } else if (state.extra is String) {
           mobile = state.extra as String;
         }
@@ -100,6 +103,27 @@ final GoRouter appRouter = GoRouter(
             email: email,
             password: password,
             invite: invite,
+            type: type,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/reset-password',
+      pageBuilder: (context, state) {
+        String email = '';
+        String otp = '';
+        if (state.extra is Map<String, dynamic>) {
+          final map = state.extra as Map<String, dynamic>;
+          email = map['email'] as String? ?? '';
+          otp = map['otp'] as String? ?? '';
+        }
+        return PageTransitions.slideRight(
+          context: context,
+          state: state,
+          child: ResetPasswordScreen(
+            email: email,
+            otp: otp,
           ),
         );
       },

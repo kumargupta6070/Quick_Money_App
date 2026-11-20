@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/transaction_model.dart';
-import '../mock_data/app_mock_data.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
 import 'user_provider.dart';
@@ -13,7 +12,7 @@ class TransactionNotifier extends Notifier<List<TransactionModel>> {
   List<TransactionModel> build() {
     // Initial fetch from live backend
     Future.microtask(() => fetchTransactions());
-    return List.from(AppMockData.transactions);
+    return const [];
   }
 
   /// Fetch live transaction ledger from Backend API (GET /transactions)
@@ -25,9 +24,7 @@ class TransactionNotifier extends Notifier<List<TransactionModel>> {
         final list = (res.data as List)
             .map((e) => TransactionModel.fromJson(e as Map<String, dynamic>))
             .toList();
-        if (list.isNotEmpty) {
-          state = list;
-        }
+        state = list;
       }
     } catch (_) {
       // Non-blocking fallback

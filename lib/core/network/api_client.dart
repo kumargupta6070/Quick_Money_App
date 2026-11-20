@@ -45,6 +45,45 @@ class ApiClient {
       throw ApiErrorHandler.handleError(e);
     }
   }
+
+  Future<ApiResponse<T>> put<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic)? fromJson,
+  }) async {
+    try {
+      final response = await _dio.put(path, data: data);
+      return ApiResponse.fromJson(response.data as Map<String, dynamic>, fromJson);
+    } catch (e) {
+      throw ApiErrorHandler.handleError(e);
+    }
+  }
+
+  Future<ApiResponse<T>> patch<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic)? fromJson,
+  }) async {
+    try {
+      final response = await _dio.patch(path, data: data);
+      return ApiResponse.fromJson(response.data as Map<String, dynamic>, fromJson);
+    } catch (e) {
+      throw ApiErrorHandler.handleError(e);
+    }
+  }
+
+  Future<ApiResponse<T>> delete<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic)? fromJson,
+  }) async {
+    try {
+      final response = await _dio.delete(path, data: data);
+      return ApiResponse.fromJson(response.data as Map<String, dynamic>, fromJson);
+    } catch (e) {
+      throw ApiErrorHandler.handleError(e);
+    }
+  }
 }
 
 final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {

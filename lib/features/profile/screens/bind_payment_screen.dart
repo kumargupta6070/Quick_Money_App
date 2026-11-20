@@ -324,8 +324,8 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 48,
-                                  height: 48,
+                                  width: 44,
+                                  height: 44,
                                   decoration: const BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
@@ -341,35 +341,38 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                                     child: Text(
                                       'पे',
                                       style: TextStyle(
-                                        fontSize: 22,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.w900,
                                         color: Colors.white,
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 14),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Row(
+                                      Wrap(
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        spacing: 6,
+                                        runSpacing: 2,
                                         children: [
                                           Text(
                                             'PhonePe Direct',
                                             style: GoogleFonts.spaceGrotesk(
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.w900,
                                               color: isDark
                                                   ? Colors.white
                                                   : const Color(0xFF0F172A),
                                             ),
                                           ),
-                                          const SizedBox(width: 8),
                                           Container(
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
+                                              horizontal: 5.5,
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
@@ -385,7 +388,7 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                                             child: Text(
                                               'OFFICIAL PARTNER',
                                               style: GoogleFonts.spaceGrotesk(
-                                                fontSize: 9,
+                                                fontSize: 8.5,
                                                 fontWeight: FontWeight.w900,
                                                 color: const Color(0xFF10B981),
                                               ),
@@ -407,8 +410,9 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.all(6),
+                                  padding: const EdgeInsets.all(5),
                                   decoration: const BoxDecoration(
                                     color: Color(0xFF10B981),
                                     shape: BoxShape.circle,
@@ -416,7 +420,7 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                                   child: const Icon(
                                     LucideIcons.check,
                                     color: Colors.white,
-                                    size: 14,
+                                    size: 13,
                                   ),
                                 ),
                               ],
@@ -920,25 +924,27 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
         gradient: LinearGradient(
           colors: isDark
               ? [
-                  _providerPrimaryColor.withValues(alpha: 0.25),
-                  const Color(0xFF0B172E),
+                  const Color(0xFF1A103C),
+                  const Color(0xFF0F0B26),
+                  const Color(0xFF140D2E),
                 ]
               : [
-                  _providerPrimaryColor.withValues(alpha: 0.08),
-                  const Color(0xFFF8FAFC),
+                  const Color(0xFF1E1B4B),
+                  const Color(0xFF2E1065),
+                  const Color(0xFF1E1B4B),
                 ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: _providerAccentColor.withValues(alpha: isDark ? 0.45 : 0.35),
+          color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.45 : 0.50),
           width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: _providerPrimaryColor.withValues(
-              alpha: isDark ? 0.25 : 0.10,
+            color: const Color(0xFF6D28D9).withValues(
+              alpha: isDark ? 0.30 : 0.22,
             ),
             blurRadius: 18,
             offset: const Offset(0, 6),
@@ -957,24 +963,24 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: _providerAccentColor.withValues(alpha: 0.35),
+                    color: const Color(0xFFC084FC).withValues(alpha: 0.45),
                     width: 1.5,
                   ),
                 ),
                 child: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [_providerPrimaryColor, _providerAccentColor],
+                      colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: _providerPrimaryColor.withValues(alpha: 0.40),
+                        color: Color(0xFF8B5CF6),
                         blurRadius: 10,
-                        offset: const Offset(0, 3),
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -992,16 +998,17 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                   children: [
                     Row(
                       children: [
-                        Flexible(
-                          child: Text(
-                            '₹100 Auto-Return Guarantee',
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w900,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '₹100 Auto-Return Guarantee',
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -1034,10 +1041,9 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
                       'Whenever your cumulative profit reaches ₹100, the system automatically sends funds back to this bound UPI address via $_selectedProviderName.',
                       style: GoogleFonts.inter(
                         fontSize: 11.5,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
-                        height: 1.35,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.88),
+                        height: 1.4,
                       ),
                     ),
                   ],
@@ -1052,21 +1058,21 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
               _buildGuaranteePill(
                 label: 'Min ₹100 Payout',
                 icon: LucideIcons.circleDollarSign,
-                color: const Color(0xFF10B981),
+                color: const Color(0xFF34D399),
                 isDark: isDark,
               ),
               const SizedBox(width: 6),
               _buildGuaranteePill(
                 label: 'Zero Delay',
                 icon: LucideIcons.zap,
-                color: const Color(0xFFF59E0B),
+                color: const Color(0xFFFBBF24),
                 isDark: isDark,
               ),
               const SizedBox(width: 6),
               _buildGuaranteePill(
                 label: 'Direct Settlement',
                 icon: LucideIcons.checkCheck,
-                color: const Color(0xFF3B82F6),
+                color: const Color(0xFF60A5FA),
                 isDark: isDark,
               ),
             ],
@@ -1086,9 +1092,9 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: isDark ? 0.15 : 0.10),
+          color: color.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.28)),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1096,14 +1102,16 @@ class _BindPaymentScreenState extends ConsumerState<BindPaymentScreen> {
             Icon(icon, size: 10, color: color),
             const SizedBox(width: 4),
             Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
                 ),
               ),
             ),

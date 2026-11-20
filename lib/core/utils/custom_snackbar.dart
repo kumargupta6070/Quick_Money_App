@@ -7,6 +7,29 @@ import '../theme/app_colors.dart';
 /// vibrant status colors, and smooth micro-animations.
 /// All trigger alerts, messages, and notifications in the app MUST use this class.
 class CustomSnackBar {
+  /// Strips technical exception prefixes, error wrapper text, and HTTP status codes
+  /// so users only ever see clear, friendly backend or system messages.
+  static String sanitizeMessage(String raw) {
+    var cleaned = raw.trim();
+    // Strip prefixes like "ApiException: ", "DioException: ", "Exception: ", "Error: "
+    cleaned = cleaned.replaceAll(
+      RegExp(r'^(ApiException|DioException|Exception|Error):\s*', caseSensitive: false),
+      '',
+    );
+    // Strip status code patterns like "(Status: 400)", "[Status: 400]", "(HTTP 400)", "Status: 400"
+    cleaned = cleaned.replaceAll(
+      RegExp(r'\s*[\(\[]?\s*(Status|HTTP|Code):\s*\d+\s*[\)\]]?', caseSensitive: false),
+      '',
+    );
+    // Strip wrapping quotes
+    cleaned = cleaned.replaceAll(RegExp(r'''^["']|["']$'''), '');
+    cleaned = cleaned.trim();
+    if (cleaned.isEmpty) {
+      return 'Something went wrong. Please try again.';
+    }
+    return cleaned;
+  }
+
   static void show({
     required BuildContext context,
     required String message,
@@ -15,11 +38,12 @@ class CustomSnackBar {
     bool isWarning = false,
     bool? isSuccess,
     IconData? icon,
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(seconds: 5),
   }) {
     if (!context.mounted) return;
 
     final effectiveIsError = isSuccess == true ? false : isError;
+    final sanitizedMessage = sanitizeMessage(message);
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -109,7 +133,7 @@ class CustomSnackBar {
                       const SizedBox(width: 14),
                       Expanded(
                         child: Text(
-                          message,
+                          sanitizedMessage,
                           style: TextStyle(
                             color: textColor,
                             fontSize: 14,
@@ -139,12 +163,12 @@ class CustomSnackBar {
     );
   }
 
-  /// Convenience shortcut for displaying error notifications
+  /// Convenience shortcut for displaying error notifications (6 seconds duration for clear readability)
   static void showError({
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(seconds: 6),
   }) {
     show(
       context: context,
@@ -177,7 +201,7 @@ class CustomSnackBar {
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(seconds: 5),
   }) {
     show(
       context: context,
@@ -193,7 +217,7 @@ class CustomSnackBar {
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(seconds: 5),
   }) {
     show(
       context: context,
@@ -215,13 +239,15 @@ class CustomSnackBar {
     bool isError = false,
     bool isWarning = false,
     bool isInfo = false,
-    Duration duration = const Duration(milliseconds: 2800),
+    Duration duration = const Duration(seconds: 5),
   }) {
     _activeToast?.remove();
     _activeToast = null;
 
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) return;
+
+    final cleanMessage = sanitizeMessage(message);
 
     // Determine colors and icon based on status
     final List<Color> gradientColors;
@@ -262,60 +288,68 @@ class CustomSnackBar {
           right: 16,
           child: Material(
             color: Colors.transparent,
-            child:
-                Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (_activeToast == entry) {
+                  entry.remove();
+                  _activeToast = null;
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor, width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadowColor.withValues(alpha: 0.45),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: gradientColors,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                        color: Colors.white.withValues(alpha: 0.20),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        effectiveIcon,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        cleanMessage,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: borderColor, width: 1.2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: shadowColor.withValues(alpha: 0.45),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.20),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              effectiveIcon,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              message,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .animate()
-                    .fadeIn(duration: 250.ms)
-                    .slideY(begin: -0.4, end: 0, curve: Curves.easeOutCubic),
+                    ),
+                  ],
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 250.ms)
+              .slideY(begin: -0.4, end: 0, curve: Curves.easeOutCubic),
+            ),
           ),
         );
       },
@@ -337,7 +371,7 @@ class CustomSnackBar {
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(milliseconds: 2800),
+    Duration duration = const Duration(seconds: 5),
   }) {
     showTopToast(
       context: context,
@@ -348,12 +382,12 @@ class CustomSnackBar {
     );
   }
 
-  /// High-priority top error alert floating above modals, bottom sheets and dialogs
+  /// High-priority top error alert (6 seconds display time for complete readability)
   static void showTopError({
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(milliseconds: 2800),
+    Duration duration = const Duration(seconds: 6),
   }) {
     showTopToast(
       context: context,
@@ -369,7 +403,7 @@ class CustomSnackBar {
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(milliseconds: 2800),
+    Duration duration = const Duration(seconds: 4),
   }) {
     showTopToast(
       context: context,
@@ -384,7 +418,7 @@ class CustomSnackBar {
     required BuildContext context,
     required String message,
     IconData? icon,
-    Duration duration = const Duration(milliseconds: 2800),
+    Duration duration = const Duration(seconds: 5),
   }) {
     showTopToast(
       context: context,

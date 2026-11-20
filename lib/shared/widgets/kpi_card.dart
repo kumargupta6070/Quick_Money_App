@@ -110,26 +110,35 @@ class KpiCard extends StatelessWidget {
               ),
               child: Icon(icon, color: color, size: 18),
             ),
-            if (trend != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: isDark ? 0.28 : 0.16),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: color.withValues(alpha: isDark ? 0.45 : 0.35),
-                    width: 0.9,
-                  ),
-                ),
-                child: Text(
-                  trend!,
-                  style: GoogleFonts.inter(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    color: _contrastBadgeTextColor(isDark),
+            if (trend != null) ...[
+              const SizedBox(width: 6),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: isDark ? 0.28 : 0.16),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: color.withValues(alpha: isDark ? 0.45 : 0.35),
+                        width: 0.9,
+                      ),
+                    ),
+                    child: Text(
+                      trend!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: _contrastBadgeTextColor(isDark),
+                      ),
+                    ),
                   ),
                 ),
               ),
+            ],
           ],
         ),
 

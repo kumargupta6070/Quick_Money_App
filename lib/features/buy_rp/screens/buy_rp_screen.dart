@@ -462,7 +462,12 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                       ),
                     )
                   : orderState.orders.isEmpty
-                  ? _buildEmptyState(context, isDark, orderState.selectedLevel)
+                  ? _buildEmptyState(
+                      context,
+                      isDark,
+                      orderState.selectedLevel,
+                      errorMessage: orderState.errorMessage,
+                    )
                   : RefreshIndicator(
                       key: ValueKey(
                         'buy_refresh_${animTrigger}_${orderState.selectedLevel}',
@@ -582,75 +587,80 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        // Tier Pill with matching accent background
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(
-                              alpha: isDark ? 0.30 : 0.16,
+                    Flexible(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          // Tier Pill with matching accent background
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3.5,
                             ),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: borderColor.withValues(alpha: 0.45),
-                              width: 0.8,
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(
+                                alpha: isDark ? 0.30 : 0.16,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: borderColor.withValues(alpha: 0.45),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              order.level,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? borderColor : accentColor,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            order.level,
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? borderColor : accentColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
 
-                        // PhonePe Guaranteed Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 3.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981)
-                                .withValues(alpha: isDark ? 0.22 : 0.14),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
+                          // PhonePe Guaranteed Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
                               color: const Color(0xFF10B981)
-                                  .withValues(alpha: 0.30),
-                              width: 0.8,
+                                  .withValues(alpha: isDark ? 0.22 : 0.14),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: const Color(0xFF10B981)
+                                    .withValues(alpha: 0.30),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  LucideIcons.shieldCheck,
+                                  size: 11,
+                                  color: Color(0xFF10B981),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'PhonePe Guaranteed',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? const Color(0xFF34D399)
+                                        : const Color(0xFF059669),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                LucideIcons.shieldCheck,
-                                size: 11,
-                                color: Color(0xFF10B981),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'PhonePe Guaranteed',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? const Color(0xFF34D399)
-                                      : const Color(0xFF059669),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 6),
 
                     // Final RP Pill (Emerald green glowing pill)
                     Container(
@@ -761,14 +771,18 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                                 color: isDark ? borderColor : accentColor,
                               ),
                               const SizedBox(width: 5),
-                              Text(
-                                'Available: ${order.orderQuantity} orders',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? const Color(0xFFCBD5E1)
-                                      : const Color(0xFF334155),
+                              Flexible(
+                                child: Text(
+                                  'Available: ${order.orderQuantity} orders',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? const Color(0xFFCBD5E1)
+                                        : const Color(0xFF334155),
+                                  ),
                                 ),
                               ),
                             ],
@@ -977,7 +991,13 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
   }
 
   /// Empty state when no orders are found for the selected tier
-  Widget _buildEmptyState(BuildContext context, bool isDark, String level) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    bool isDark,
+    String level, {
+    String? errorMessage,
+  }) {
+    final hasError = errorMessage != null && errorMessage.isNotEmpty;
     return Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -989,23 +1009,29 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                   height: 70,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                    color: (hasError ? Colors.red : const Color(0xFF0284C7))
+                        .withValues(alpha: 0.15),
                     border: Border.all(
-                      color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                      color: (hasError ? Colors.red : const Color(0xFF0284C7))
+                          .withValues(alpha: 0.35),
                       width: 1.5,
                     ),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
-                      LucideIcons.packageOpen,
+                      hasError
+                          ? LucideIcons.alertTriangle
+                          : LucideIcons.packageOpen,
                       size: 32,
-                      color: Color(0xFF0284C7),
+                      color: hasError ? Colors.red : const Color(0xFF0284C7),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No Orders in Tier $level',
+                  hasError
+                      ? 'Connection Notice'
+                      : 'No Orders in Tier $level',
                   style: GoogleFonts.spaceGrotesk(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -1014,7 +1040,9 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'All current orders in $level are currently fulfilled. Switch tiers or refresh to check updated market listings.',
+                  hasError
+                      ? errorMessage
+                      : 'All current orders in $level are currently fulfilled. Switch tiers or refresh to check updated market listings.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 13,
@@ -1028,7 +1056,7 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                 ElevatedButton.icon(
                   onPressed: _handleRefresh,
                   icon: const Icon(LucideIcons.rotateCcw, size: 14),
-                  label: const Text('Refresh Orders'),
+                  label: Text(hasError ? 'Retry' : 'Refresh Orders'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.brandPrimary,
                     foregroundColor: Colors.white,
@@ -1417,24 +1445,23 @@ class _BuyRpScreenState extends ConsumerState<BuyRpScreen>
                                   message: 'Reserving Order & Crediting RP on Live Gateway...',
                                 );
 
-                                final success = await ref
+                                final result = await ref
                                     .read(orderProvider.notifier)
                                     .receiveOrder(order.id);
 
                                 if (!context.mounted) return;
                                 CustomLoader.dismiss(context);
 
-                                if (success) {
+                                if (result.success) {
                                   CustomSnackBar.showSuccess(
                                     context: context,
-                                    message:
-                                        'Successfully received order! $finalRpStr RP credited.',
+                                    message: result.message,
                                     icon: Icons.check_circle_rounded,
                                   );
                                 } else {
                                   CustomSnackBar.showError(
                                     context: context,
-                                    message: 'Order is no longer available or could not be received.',
+                                    message: result.message,
                                   );
                                 }
                               },

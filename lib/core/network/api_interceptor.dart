@@ -20,4 +20,12 @@ class ApiInterceptor extends Interceptor {
     options.headers['Accept'] = 'application/json';
     super.onRequest(options, handler);
   }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      await _storageService.clearAll();
+    }
+    super.onError(err, handler);
+  }
 }

@@ -5,6 +5,10 @@ import '../network/api_endpoints.dart';
 
 class TeamOverview {
   final double totalEarnings;
+  final double level1Earnings;
+  final double level2Earnings;
+  final double level3Earnings;
+  final double dailyVolume;
   final int level1Members;
   final int level2Members;
   final int level3Members;
@@ -13,10 +17,14 @@ class TeamOverview {
   final String level3Percent;
 
   const TeamOverview({
-    this.totalEarnings = 148.50,
-    this.level1Members = 12,
-    this.level2Members = 28,
-    this.level3Members = 45,
+    this.totalEarnings = 0.0,
+    this.level1Earnings = 0.0,
+    this.level2Earnings = 0.0,
+    this.level3Earnings = 0.0,
+    this.dailyVolume = 0.0,
+    this.level1Members = 0,
+    this.level2Members = 0,
+    this.level3Members = 0,
     this.level1Percent = '5%',
     this.level2Percent = '3%',
     this.level3Percent = '1%',
@@ -25,14 +33,21 @@ class TeamOverview {
   factory TeamOverview.fromJson(Map<String, dynamic> json) {
     return TeamOverview(
       totalEarnings:
-          double.tryParse(json['totalEarnings']?.toString() ?? '148.50') ??
-          148.50,
+      double.tryParse(json['totalEarnings']?.toString() ?? '0') ?? 0.0,
+      level1Earnings:
+          double.tryParse(json['level1Earnings']?.toString() ?? '0') ?? 0.0,
+      level2Earnings:
+          double.tryParse(json['level2Earnings']?.toString() ?? '0') ?? 0.0,
+      level3Earnings:
+          double.tryParse(json['level3Earnings']?.toString() ?? '0') ?? 0.0,
+      dailyVolume:
+          double.tryParse(json['dailyVolume']?.toString() ?? '0') ?? 0.0,
       level1Members:
-          int.tryParse(json['level1Members']?.toString() ?? '12') ?? 12,
+      int.tryParse(json['level1Members']?.toString() ?? '0') ?? 0,
       level2Members:
-          int.tryParse(json['level2Members']?.toString() ?? '28') ?? 28,
+      int.tryParse(json['level2Members']?.toString() ?? '0') ?? 0,
       level3Members:
-          int.tryParse(json['level3Members']?.toString() ?? '45') ?? 45,
+      int.tryParse(json['level3Members']?.toString() ?? '0') ?? 0,
       level1Percent: json['level1Percent']?.toString() ?? '5%',
       level2Percent: json['level2Percent']?.toString() ?? '3%',
       level3Percent: json['level3Percent']?.toString() ?? '1%',

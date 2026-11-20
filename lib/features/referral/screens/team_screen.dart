@@ -27,6 +27,12 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
   int _animSeed = 0;
   bool _copied = false;
 
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.read(referralProvider.notifier).fetchTeamOverview());
+  }
+
   void _copyInviteCode(String code) {
     HapticFeedback.lightImpact();
     Clipboard.setData(ClipboardData(text: code));
@@ -174,7 +180,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                         level: 'Level 1 (Direct)',
                         tagText: '${team.level1Percent} Rebate Yield',
                         members: '${team.level1Members} Members',
-                        earnings: '₹${(team.totalEarnings * 0.60).toStringAsFixed(2)}',
+                        earnings: CurrencyFormatter.format(team.level1Earnings),
                         subtext: 'Direct invitees purchasing RP orders',
                         icon: LucideIcons.userCheck,
                         gradientColors: isDark
@@ -194,7 +200,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                         level: 'Level 2 (Indirect)',
                         tagText: '${team.level2Percent} Rebate Yield',
                         members: '${team.level2Members} Members',
-                        earnings: '₹${(team.totalEarnings * 0.28).toStringAsFixed(2)}',
+                        earnings: CurrencyFormatter.format(team.level2Earnings),
                         subtext: 'Invited by your direct team members',
                         icon: LucideIcons.users,
                         gradientColors: isDark
@@ -214,7 +220,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                         level: 'Level 3 (Community)',
                         tagText: '${team.level3Percent} Rebate Yield',
                         members: '${team.level3Members} Members',
-                        earnings: '₹${(team.totalEarnings * 0.12).toStringAsFixed(2)}',
+                        earnings: CurrencyFormatter.format(team.level3Earnings),
                         subtext: 'Extended downstream network volume',
                         icon: LucideIcons.network,
                         gradientColors: isDark
@@ -372,7 +378,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
   }
 
   /// Royal FinTech Header with glowing earnings hero
-  Widget _buildHeroHeader(BuildContext context, bool isDark, String inviteCode, [double totalEarnings = 148.50]) {
+  Widget _buildHeroHeader(BuildContext context, bool isDark, String inviteCode, double totalEarnings) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -415,7 +421,11 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      context.pop();
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/home');
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -727,7 +737,7 @@ class _TeamScreenState extends ConsumerState<TeamScreen> {
         Expanded(
           child: _buildMiniKpi(
             title: 'Daily Volume',
-            value: '₹12,450',
+            value: CurrencyFormatter.format(t.dailyVolume),
             subtitle: 'Active RP',
             icon: LucideIcons.trendingUp,
             color: const Color(0xFF10B981),

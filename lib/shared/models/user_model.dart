@@ -1,6 +1,7 @@
 class UserModel {
   final int id;
   final String mobile;
+  final String email;
   final String inviteCode;
   final String? referredBy;
   final double balance;
@@ -12,6 +13,7 @@ class UserModel {
   const UserModel({
     required this.id,
     required this.mobile,
+    this.email = '',
     required this.inviteCode,
     this.referredBy,
     required this.balance,
@@ -24,6 +26,7 @@ class UserModel {
   UserModel copyWith({
     int? id,
     String? mobile,
+    String? email,
     String? inviteCode,
     String? referredBy,
     double? balance,
@@ -35,6 +38,7 @@ class UserModel {
     return UserModel(
       id: id ?? this.id,
       mobile: mobile ?? this.mobile,
+      email: email ?? this.email,
       inviteCode: inviteCode ?? this.inviteCode,
       referredBy: referredBy ?? this.referredBy,
       balance: balance ?? this.balance,
@@ -49,6 +53,7 @@ class UserModel {
     return {
       'id': id,
       'mobile': mobile,
+      'email': email,
       'invite_code': inviteCode,
       'referred_by': referredBy,
       'balance': balance,
@@ -63,6 +68,7 @@ class UserModel {
     return UserModel(
       id: int.tryParse(json['id']?.toString() ?? '1') ?? 1,
       mobile: json['mobile'] as String? ?? '',
+      email: json['email'] as String? ?? '',
       inviteCode: json['invite_code'] as String? ?? '',
       referredBy: json['referred_by'] as String?,
       balance: double.tryParse(json['balance']?.toString() ?? '0') ?? 0.0,

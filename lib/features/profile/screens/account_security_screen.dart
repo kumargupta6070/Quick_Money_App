@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/utils/custom_loader.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 
@@ -12,14 +15,14 @@ import '../../../shared/widgets/animated_ambient_background.dart';
 /// Styled to match HomeScreen luxury FinTech aesthetics with dynamic category tints,
 /// bank-grade security health indicators, biometric & OTP management,
 /// and smooth cascading entrance animations on scroll and load.
-class AccountSecurityScreen extends StatefulWidget {
+class AccountSecurityScreen extends ConsumerStatefulWidget {
   const AccountSecurityScreen({super.key});
 
   @override
-  State<AccountSecurityScreen> createState() => _AccountSecurityScreenState();
+  ConsumerState<AccountSecurityScreen> createState() => _AccountSecurityScreenState();
 }
 
-class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
+class _AccountSecurityScreenState extends ConsumerState<AccountSecurityScreen> {
   bool _biometricEnabled = true;
   bool _otpEnabled = true;
 
@@ -137,15 +140,38 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
               return;
             }
 
-            // All validations passed successfully
-            Navigator.pop(dialogCtx);
-            HapticFeedback.mediumImpact();
-            CustomSnackBar.showTopSuccess(
-              context: context,
-              message:
-                  'Login password updated successfully! AES-256 Vault synced.',
-              icon: LucideIcons.shieldCheck,
-            );
+            // All validations passed successfully -> Call Backend API
+            CustomLoader.show(context, message: 'Syncing 256-Bit Password Vault...');
+            ref.read(authProvider.notifier).changePassword(
+              oldPassword: oldPass,
+              newPassword: newPass,
+            ).then((success) {
+              if (!context.mounted) return;
+              CustomLoader.hide(context);
+
+              if (success) {
+                Navigator.pop(dialogCtx);
+                HapticFeedback.mediumImpact();
+                CustomSnackBar.showTopSuccess(
+                  context: context,
+                  message: 'Login password updated successfully! AES-256 Vault synced.',
+                  icon: LucideIcons.shieldCheck,
+                );
+              } else {
+                final err = ref.read(authProvider).error ?? 'Failed to update password. Please check your current password.';
+                CustomSnackBar.showTopError(
+                  context: context,
+                  message: err,
+                );
+              }
+            }).catchError((_) {
+              if (!context.mounted) return;
+              CustomLoader.hide(context);
+              CustomSnackBar.showTopError(
+                context: context,
+                message: 'Network error. Please try again.',
+              );
+            });
           }
 
           return Dialog(

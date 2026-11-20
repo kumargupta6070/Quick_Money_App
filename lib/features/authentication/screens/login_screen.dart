@@ -24,25 +24,29 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _mobileController = TextEditingController(text: '9835913180');
-  final _passwordController = TextEditingController(text: '123456');
+  final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
     _mobileController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
     final mobile = _mobileController.text.trim();
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     // 1. Mobile Number Required check via CustomSnackBar
     if (mobile.isEmpty) {
       CustomSnackBar.showTopWarning(
         context: context,
-        message: 'Mobile number is required. Please enter your 10-digit number.',
+        message:
+            'Mobile number is required. Please enter your 10-digit number.',
         icon: LucideIcons.phone,
       );
       return;
@@ -59,7 +63,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    // 3. Password Required check via CustomSnackBar
+    // 3. Email Address Required check via CustomSnackBar
+    if (email.isEmpty) {
+      CustomSnackBar.showTopWarning(
+        context: context,
+        message:
+            'Email address is required. Please enter your registered email.',
+        icon: LucideIcons.mail,
+      );
+      return;
+    }
+
+    // 4. Email Format validation via CustomSnackBar
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      CustomSnackBar.showTopWarning(
+        context: context,
+        message:
+            'Please enter a valid email address (e.g. investor@gmail.com).',
+        icon: LucideIcons.alertCircle,
+      );
+      return;
+    }
+
+    // 5. Password Required check via CustomSnackBar
     if (password.isEmpty) {
       CustomSnackBar.showTopWarning(
         context: context,
@@ -69,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    // 4. Password minimum 6 characters check via CustomSnackBar
+    // 6. Password minimum 6 characters check via CustomSnackBar
     if (password.length < 6) {
       CustomSnackBar.showTopWarning(
         context: context,
@@ -84,7 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final success = await ref
           .read(authProvider.notifier)
-          .login(cleanDigits, password);
+      .login(mobile: cleanDigits, email: email, password: password);
 
       if (!mounted) return;
       CustomLoader.hide(context);
@@ -97,11 +123,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
         context.go('/home');
       } else {
-        final err = ref.read(authProvider).error ?? 'Invalid credentials. Please verify your mobile and password.';
-        CustomSnackBar.showTopError(
-          context: context,
-          message: err,
-        );
+        final err =
+            ref.read(authProvider).error ??
+            'Invalid credentials. Please verify your mobile, email and password.';
+        CustomSnackBar.showTopError(context: context, message: err);
       }
     } catch (e) {
       if (!mounted) return;
@@ -185,6 +210,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         const SizedBox(height: 18),
 
+                        // Registered Email Address Field
+                        AuthTextField(
+                              controller: _emailController,
+                              label: 'Registered Email Address',
+                              hint: 'Enter your registered email',
+                              prefixIcon: LucideIcons.mail,
+                              keyboardType: TextInputType.emailAddress,
+                              maxLength: 60,
+                            )
+                            .animate()
+                            .fade(delay: 280.ms, duration: 400.ms)
+                            .slideX(
+                              begin: 0.1,
+                              end: 0,
+                              delay: 280.ms,
+                              duration: 400.ms,
+                            ),
+
+                        const SizedBox(height: 18),
+
                         // Password Field
                         AuthTextField(
                               controller: _passwordController,
@@ -195,11 +240,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               maxLength: 20,
                             )
                             .animate()
-                            .fade(delay: 350.ms, duration: 400.ms)
+                            .fade(delay: 360.ms, duration: 400.ms)
                             .slideX(
-                              begin: 0.1,
+                              begin: -0.1,
                               end: 0,
-                              delay: 350.ms,
+                              delay: 360.ms,
                               duration: 400.ms,
                             ),
 

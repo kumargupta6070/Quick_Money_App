@@ -21,6 +21,7 @@ class OtpScreen extends ConsumerStatefulWidget {
   final String? email;
   final String? password;
   final String? invite;
+  final String? type;
 
   const OtpScreen({
     super.key,
@@ -28,6 +29,7 @@ class OtpScreen extends ConsumerStatefulWidget {
     this.email,
     this.password,
     this.invite,
+    this.type,
   });
 
   @override
@@ -101,22 +103,46 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     setState(() => _isLoading = true);
     CustomLoader.show(context, message: 'Verifying 256-Bit Security OTP...');
 
-    bool success = false;
-    if (widget.email != null && widget.password != null) {
-      success = await ref
+    // 1. Forgot Password Flow
+    if (widget.type == 'forgot_password' ||
+        (widget.password == null && widget.email != null)) {
+      final verified = await ref
           .read(authProvider.notifier)
-          .register(
-            mobile: widget.mobile ?? '',
-            email: widget.email!,
-            password: widget.password!,
-            inviteCode: widget.invite ?? '',
-            otp: code,
-          );
-    } else {
-      success = await ref
-          .read(authProvider.notifier)
-          .verifyOtp(code, email: widget.email);
+          .verifyOtp(code, email: widget.email, type: 'forgot_password');
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      CustomLoader.hide(context);
+
+      if (verified) {
+        CustomSnackBar.showTopSuccess(
+          context: context,
+          message: 'Code verified! Please create your new password.',
+          icon: LucideIcons.shieldCheck,
+        );
+        context.push(
+          '/reset-password',
+          extra: {'email': widget.email, 'otp': code},
+        );
+      } else {
+        final error =
+            ref.read(authProvider).error ??
+            'Invalid or expired OTP code. Please enter the correct code.';
+        CustomSnackBar.showTopError(context: context, message: error);
+      }
+      return;
     }
+
+    // 2. Registration Flow
+    final success = await ref
+        .read(authProvider.notifier)
+        .register(
+          mobile: widget.mobile ?? '',
+          email: widget.email ?? '',
+          password: widget.password ?? '',
+          inviteCode: widget.invite ?? '',
+          otp: code,
+        );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -145,20 +171,35 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         context,
         message: 'Dispatching new OTP to your email...',
       );
-      await ref
-          .read(authProvider.notifier)
-          .sendRegisterOtp(email: widget.email!, mobile: widget.mobile ?? '');
+
+      bool sent = false;
+      if (widget.type == 'forgot_password') {
+        sent = await ref
+            .read(authProvider.notifier)
+            .sendPasswordResetOtp(widget.email!);
+      } else {
+        sent = await ref
+            .read(authProvider.notifier)
+            .sendRegisterOtp(email: widget.email!, mobile: widget.mobile ?? '');
+      }
+
       if (!mounted) return;
       CustomLoader.hide(context);
-    }
 
-    _startCountdown();
-    CustomSnackBar.showTopSuccess(
-      context: context,
-      message:
-          'New security code sent to ${widget.email ?? widget.mobile ?? "your account"}!',
-      icon: LucideIcons.mailCheck,
-    );
+      if (sent) {
+        _startCountdown();
+        CustomSnackBar.showTopSuccess(
+          context: context,
+          message: 'New security code sent to ${widget.email}!',
+          icon: LucideIcons.mailCheck,
+        );
+      } else {
+        final err =
+            ref.read(authProvider).error ??
+            'Failed to resend code. Please try again.';
+        CustomSnackBar.showTopError(context: context, message: err);
+      }
+    }
   }
 
   @override

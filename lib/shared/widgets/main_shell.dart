@@ -26,19 +26,8 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell> {
   void _onTap(int index) {
-    if (index == widget.navigationShell.currentIndex) {
-      // Re-trigger animation on current tab without re-navigating
-      if (index == 0) {
-        ref.read(homeAnimationTriggerProvider.notifier).trigger();
-      } else if (index == 1) {
-        ref.read(buyRpAnimationTriggerProvider.notifier).trigger();
-      } else if (index == 2) {
-        ref.read(sellRpAnimationTriggerProvider.notifier).trigger();
-      } else if (index == 3) {
-        ref.read(mineAnimationTriggerProvider.notifier).trigger();
-      }
-      return;
-    }
+    final isCurrent = index == widget.navigationShell.currentIndex;
+    widget.navigationShell.goBranch(index, initialLocation: isCurrent);
 
     if (index == 0) {
       ref.read(homeAnimationTriggerProvider.notifier).trigger();
@@ -49,7 +38,6 @@ class _MainShellState extends ConsumerState<MainShell> {
     } else if (index == 3) {
       ref.read(mineAnimationTriggerProvider.notifier).trigger();
     }
-    widget.navigationShell.goBranch(index, initialLocation: false);
   }
 
   @override

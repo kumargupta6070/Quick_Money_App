@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/wallet_model.dart';
-import '../mock_data/app_mock_data.dart';
+export '../../shared/models/wallet_model.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
 
@@ -10,7 +10,8 @@ class WalletNotifier extends Notifier<WalletModel> {
 
   @override
   WalletModel build() {
-    return AppMockData.wallet;
+    Future.microtask(() => fetchWallet());
+    return WalletModel.empty;
   }
 
   /// Fetch live bound wallet from Backend API (GET /wallets)
@@ -21,9 +22,31 @@ class WalletNotifier extends Notifier<WalletModel> {
       if (res.success && res.data != null) {
         final walletMap = res.data as Map<String, dynamic>;
         state = WalletModel.fromJson(walletMap);
+      } else {
+        // No wallet bound on live backend
+        state = WalletModel.empty;
       }
     } catch (_) {
       // Non-blocking fallback
+    }
+  }
+
+  /// Unbind PhonePe UPI wallet from live backend (POST /wallets/unbind)
+  Future<bool> unbindWallet() async {
+    try {
+      if (ApiEndpoints.useMockData) {
+        state = WalletModel.empty;
+        return true;
+      }
+
+      final res = await _apiClient.post(ApiEndpoints.unbindWallet);
+      if (res.success) {
+        state = WalletModel.empty;
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 

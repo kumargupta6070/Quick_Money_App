@@ -25,6 +25,14 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   int _animSeed = 0;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(
+      () => ref.read(notificationProvider.notifier).fetchNotifications(),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final notifications = ref.watch(notificationProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
@@ -57,7 +65,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             setState(() => _animSeed++);
-            await Future.delayed(const Duration(milliseconds: 300));
+            await ref.read(notificationProvider.notifier).fetchNotifications();
           },
           child: Column(
             children: [

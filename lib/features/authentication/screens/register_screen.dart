@@ -81,7 +81,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       CustomSnackBar.showTopWarning(
         context: context,
-        message: 'Please enter a valid email address (e.g. investor@gmail.com).',
+        message:
+            'Please enter a valid email address (e.g. investor@gmail.com).',
         icon: LucideIcons.alertCircle,
       );
       return;
@@ -91,7 +92,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (password.isEmpty) {
       CustomSnackBar.showTopWarning(
         context: context,
-        message: 'Password is required. Please create a password for your account.',
+        message:
+            'Password is required. Please create a password for your account.',
         icon: LucideIcons.lock,
       );
       return;
@@ -107,36 +109,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    // 6. Invitation Code Required check via CustomSnackBar
-    if (invite.isEmpty) {
-      CustomSnackBar.showTopWarning(
-        context: context,
-        message: 'Invitation referral code is required to join Quick Money.',
-        icon: LucideIcons.gift,
-      );
-      return;
-    }
-
-    // 7. Terms Checkbox check via CustomSnackBar
+    // 6. Terms Checkbox check via CustomSnackBar
     if (!_agreedToTerms) {
       CustomSnackBar.showTopWarning(
         context: context,
-        message: 'Please agree to Terms of Service & Privacy Policy to register.',
+        message:
+            'Please agree to Terms of Service & Privacy Policy to register.',
         icon: LucideIcons.checkCheck,
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    CustomLoader.show(
-      context,
-      message: 'Generating 256-Bit Security OTP...',
-    );
+    CustomLoader.show(context, message: 'Generating 256-Bit Security OTP...');
 
-    final success = await ref.read(authProvider.notifier).sendRegisterOtp(
-          email: email,
-          mobile: cleanDigits,
-        );
+    final success = await ref
+        .read(authProvider.notifier)
+        .sendRegisterOtp(email: email, mobile: cleanDigits);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -155,15 +144,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           'mobile': cleanDigits,
           'email': email,
           'password': password,
-          'invite': invite,
+          'invite': invite.trim().isNotEmpty ? invite.trim() : null,
+          'type': 'register',
         },
       );
     } else {
-      final error = ref.read(authProvider).error ?? 'Failed to send security code. Please try again.';
-      CustomSnackBar.showTopError(
-        context: context,
-        message: error,
-      );
+      final error =
+          ref.read(authProvider).error ??
+          'Failed to send security code. Please try again.';
+      CustomSnackBar.showTopError(context: context, message: error);
     }
   }
 
@@ -302,11 +291,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Invitation Code Field
+                        // Invitation Code Field (Optional)
                         AuthTextField(
                               controller: _inviteController,
-                              label: 'Invitation / Referral Code',
-                              hint: 'Enter referral code',
+                              label: 'Invitation / Referral Code (Optional)',
+                              hint: 'Enter referral code if you have one',
                               prefixIcon: LucideIcons.gift,
                               maxLength: 12,
                             )

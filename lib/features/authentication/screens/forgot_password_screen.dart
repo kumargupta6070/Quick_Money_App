@@ -19,7 +19,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -39,7 +40,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     if (input.isEmpty) {
       CustomSnackBar.showTopWarning(
         context: context,
-        message: 'Please enter your registered Email address to reset password.',
+        message:
+            'Please enter your registered Email address to reset password.',
         icon: LucideIcons.mail,
       );
       return;
@@ -56,12 +58,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     }
 
     setState(() => _isLoading = true);
-    CustomLoader.show(context, message: 'Dispatching Password Reset OTP to your email...');
+    CustomLoader.show(
+      context,
+      message: 'Dispatching Password Reset OTP to your email...',
+    );
 
-    final success = await ref.read(authProvider.notifier).sendRegisterOtp(
-          email: input,
-          mobile: '9835913180',
-        );
+    final success = await ref
+        .read(authProvider.notifier)
+        .sendPasswordResetOtp(input);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -74,19 +78,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         icon: LucideIcons.mailCheck,
       );
 
-      context.push(
-        '/otp',
-        extra: {
-          'email': input,
-          'type': 'forgot_password',
-        },
-      );
+      context.push('/otp', extra: {'email': input, 'type': 'forgot_password'});
     } else {
-      final err = ref.read(authProvider).error ?? 'Could not send reset code. Please verify your email.';
-      CustomSnackBar.showTopError(
-        context: context,
-        message: err,
-      );
+      final err =
+          ref.read(authProvider).error ??
+          'Could not send reset code. Please verify your email.';
+      CustomSnackBar.showTopError(context: context, message: err);
     }
   }
 
@@ -101,22 +98,23 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             children: [
               // Top Back Button
               Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(
-                    LucideIcons.arrowLeft,
-                    color: Colors.white,
-                  ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: Color(0xFF334155)),
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: const Icon(
+                        LucideIcons.arrowLeft,
+                        color: Colors.white,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E293B)
+                            .withValues(alpha: 0.8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: Color(0xFF334155)),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              )
+                  )
                   .animate()
                   .fade(duration: 300.ms)
                   .slideX(begin: -0.2, end: 0, duration: 300.ms),
@@ -134,58 +132,68 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
               // Card with Input
               Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.75),
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                    width: 1.2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
-                      blurRadius: 28,
-                      offset: const Offset(0, 8),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF00E5FF)
+                              .withValues(alpha: 0.12),
+                          blurRadius: 28,
+                          offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Email Field
+                        AuthTextField(
+                              controller: _inputController,
+                              label: 'Registered Email Address',
+                              hint: 'e.g. investor@gmail.com',
+                              prefixIcon: LucideIcons.mail,
+                              keyboardType: TextInputType.emailAddress,
+                              maxLength: 60,
+                            )
+                            .animate()
+                            .fade(delay: 150.ms, duration: 400.ms)
+                            .slideX(
+                              begin: -0.1,
+                              end: 0,
+                              delay: 150.ms,
+                              duration: 400.ms,
+                            ),
+
+                        const SizedBox(height: 24),
+
+                        // Send Verification Button
+                        AuthButton(
+                              text: 'Send Verification OTP',
+                              icon: LucideIcons.send,
+                              isLoading: _isLoading,
+                              onPressed: _handleSendReset,
+                            )
+                            .animate()
+                            .fade(delay: 300.ms, duration: 400.ms)
+                            .scale(
+                              begin: const Offset(0.95, 0.95),
+                              delay: 300.ms,
+                              duration: 350.ms,
+                            ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Email Field
-                    AuthTextField(
-                      controller: _inputController,
-                      label: 'Registered Email Address',
-                      hint: 'e.g. investor@gmail.com',
-                      prefixIcon: LucideIcons.mail,
-                      keyboardType: TextInputType.emailAddress,
-                      maxLength: 60,
-                    )
-                        .animate()
-                        .fade(delay: 150.ms, duration: 400.ms)
-                        .slideX(begin: -0.1, end: 0, delay: 150.ms, duration: 400.ms),
-
-                    const SizedBox(height: 24),
-
-                    // Send Verification Button
-                    AuthButton(
-                      text: 'Send Verification OTP',
-                      icon: LucideIcons.send,
-                      isLoading: _isLoading,
-                      onPressed: _handleSendReset,
-                    )
-                        .animate()
-                        .fade(delay: 300.ms, duration: 400.ms)
-                        .scale(begin: const Offset(0.95, 0.95), delay: 300.ms, duration: 350.ms),
-                  ],
-                ),
-              )
+                  )
                   .animate()
                   .fade(delay: 100.ms, duration: 500.ms)
                   .slideY(

@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/user_model.dart';
-import '../mock_data/app_mock_data.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
 import 'auth_provider.dart';
@@ -11,19 +10,31 @@ class UserNotifier extends Notifier<UserModel> {
 
   @override
   UserModel build() {
+    // Initial fetch in background whenever user model is initialized
+    Future.microtask(() => fetchProfile());
+
     // Sync with authState whenever user logs in or profile changes
     final authState = ref.watch(authProvider);
-    if (authState.isAuthenticated && authState.mobile != null) {
+    if (authState.isAuthenticated) {
       return UserModel(
         id: 1,
-        mobile: authState.mobile ?? '9835913180',
-        inviteCode: authState.inviteCode ?? 'x03180',
+        mobile: authState.mobile ?? '',
+        email: authState.email ?? '',
+        inviteCode: authState.inviteCode ?? '',
         balance: authState.balance,
         level: authState.level,
         isVerified: true,
       );
     }
-    return AppMockData.user;
+    return const UserModel(
+      id: 0,
+      mobile: '',
+      email: '',
+      inviteCode: '',
+      balance: 0.0,
+      level: 'L1',
+      isVerified: false,
+    );
   }
 
   /// Fetch live user profile from Backend API (GET /users/profile)

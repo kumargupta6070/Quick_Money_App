@@ -5,10 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/widgets/kpi_card.dart';
 
 /// Next-Level 2x2 Performance Metrics Grid directly matching the ICU Mobile App KPI architecture.
-/// Replaces flat grey lists with vivid, glowing, interactive KPI cards with staggered entry.
+/// Displays live real-time metrics fetched from the backend API.
 class StatsSummaryCard extends StatelessWidget {
   final Map<String, dynamic> stats;
 
@@ -18,10 +19,16 @@ class StatsSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final buyQty = stats['buyQuantity'] ?? 1;
-    final buyAmount = stats['buyAmount'] ?? 1550;
-    final sellToday = stats['sellToday'] ?? 1599;
-    final totalRevenue = stats['totalRevenue'] ?? 38.75;
+    final buyQty = stats['buyQuantity'] ?? 0;
+    final num rawBuyAmount = stats['buyAmount'] ?? 0;
+    final num rawSellToday = stats['sellToday'] ?? 0;
+    final num rawTotalRevenue = stats['totalRevenue'] ?? 0;
+
+    final buyAmountStr = CurrencyFormatter.format(rawBuyAmount.toDouble());
+    final sellTodayStr = CurrencyFormatter.format(rawSellToday.toDouble());
+    final totalRevenueStr = rawTotalRevenue > 0
+        ? '+${CurrencyFormatter.format(rawTotalRevenue.toDouble())}'
+        : CurrencyFormatter.format(rawTotalRevenue.toDouble());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +108,7 @@ class StatsSummaryCard extends StatelessWidget {
           ),
         ).animate().fadeIn(duration: 300.ms).slideX(begin: -0.08, end: 0),
 
-        // 2x2 Grid of ICU-Style Vivid KPI Cards
+        // 2x2 Grid of ICU-Style Vivid KPI Cards with live backend values
         GridView.count(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
@@ -112,7 +119,7 @@ class StatsSummaryCard extends StatelessWidget {
           children: [
             KpiCard(
               title: 'Buy Quantity',
-              value: '$buyQty Order',
+              value: buyQty == 1 ? '1 Order' : '$buyQty Orders',
               icon: LucideIcons.calendar,
               color: const Color(0xFF0284C7), // Sky Blue
               subtitle: 'Active today',
@@ -122,7 +129,7 @@ class StatsSummaryCard extends StatelessWidget {
             ),
             KpiCard(
               title: 'Buy Amount',
-              value: '₹$buyAmount',
+              value: buyAmountStr,
               icon: LucideIcons.receipt,
               color: const Color(0xFFD97706), // Amber Gold
               subtitle: 'Committed funds',
@@ -132,21 +139,21 @@ class StatsSummaryCard extends StatelessWidget {
             ),
             KpiCard(
               title: 'Sell Today',
-              value: '₹$sellToday',
+              value: sellTodayStr,
               icon: LucideIcons.refreshCw,
               color: const Color(0xFF0891B2), // Deep Ocean Cyan (High contrast)
               subtitle: 'Auto-return target',
-              trend: '+₹49 return',
+              trend: rawSellToday > 0 ? 'Processed' : 'Auto-Ready',
               index: 2,
               onTap: () => context.go('/sell-rp'),
             ),
             KpiCard(
               title: 'Total Revenue',
-              value: '+₹$totalRevenue',
+              value: totalRevenueStr,
               icon: LucideIcons.trendingUp,
               color: const Color(0xFF059669), // Emerald Green
               subtitle: 'Daily net gain',
-              trend: '+2.5% yield',
+              trend: rawTotalRevenue > 0 ? '+2.5% yield' : 'Ready',
               index: 3,
               onTap: () => context.push('/daily-details'),
             ),

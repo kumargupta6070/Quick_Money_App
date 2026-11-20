@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../../core/providers/reward_provider.dart';
+import '../../../core/providers/user_provider.dart';
+import '../../../core/providers/wallet_provider.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../../../shared/widgets/gradient_text.dart';
@@ -12,19 +16,119 @@ import '../../../shared/widgets/gradient_text.dart';
 /// Next-Level FinTech Newbie Rewards Screen
 /// Designed adhering to the ICU Mobile App aesthetic with animated entrance,
 /// royal curved hero header, colorful task milestone cards, and zero overflow.
-class NewbieRewardsScreen extends StatefulWidget {
+/// Fully integrated with live backend API: GET /api/v1/rewards/newbie & POST /api/v1/rewards/claim.
+class NewbieRewardsScreen extends ConsumerStatefulWidget {
   const NewbieRewardsScreen({super.key});
 
   @override
-  State<NewbieRewardsScreen> createState() => _NewbieRewardsScreenState();
+  ConsumerState<NewbieRewardsScreen> createState() =>
+      _NewbieRewardsScreenState();
 }
 
-class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
+class _NewbieRewardsScreenState extends ConsumerState<NewbieRewardsScreen> {
   int _animSeed = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(rewardProvider.notifier).fetchNewbieRewards();
+      ref.read(userProvider.notifier).fetchProfile();
+      ref.read(walletProvider.notifier).fetchWallet();
+    });
+  }
+
+  Future<void> _handleClaim(RewardTask task) async {
+    HapticFeedback.mediumImpact();
+    final success =
+        await ref.read(rewardProvider.notifier).claimReward(task.id);
+    if (mounted) {
+      if (success) {
+        HapticFeedback.heavyImpact();
+        CustomSnackBar.showSuccess(
+          context: context,
+          message:
+              '🎉 ${task.rewardText} reward claimed & added to your RP balance!',
+          icon: LucideIcons.sparkles,
+        );
+      } else {
+        CustomSnackBar.showError(
+          context: context,
+          message:
+              'Unable to claim reward. Please complete the milestone requirements.',
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final rewardsState = ref.watch(rewardProvider);
+
+    final completedCount = rewardsState.completedCount;
+    final totalTasks = rewardsState.totalTasks > 0 ? rewardsState.totalTasks : 4;
+    final progressPercent = rewardsState.progressPercent;
+    final claimingTaskId = rewardsState.claimingTaskId;
+
+    final task1 = rewardsState.tasks.firstWhere(
+      (t) => t.id == 'verify_mobile',
+      orElse: () => const RewardTask(
+        id: 'verify_mobile',
+        title: 'Verify Mobile Number',
+        subtitle: 'Primary account phone verification',
+        reward: 10.0,
+        rewardText: '₹10.00 RP',
+        isEligible: true,
+        isClaimed: false,
+        actionType: 'claim',
+      ),
+    );
+
+    final task2 = rewardsState.tasks.firstWhere(
+      (t) => t.id == 'bind_phonepe',
+      orElse: () => const RewardTask(
+        id: 'bind_phonepe',
+        title: 'Bind PhonePe UPI Address',
+        subtitle: 'Enables automatic ₹100 returns to PhonePe',
+        reward: 20.0,
+        rewardText: '₹20.00 RP',
+        isEligible: false,
+        isClaimed: false,
+        actionType: 'navigate',
+        navigationRoute: '/bind-payment',
+      ),
+    );
+
+    final task3 = rewardsState.tasks.firstWhere(
+      (t) => t.id == 'first_order',
+      orElse: () => const RewardTask(
+        id: 'first_order',
+        title: 'Receive First L1 RP Order',
+        subtitle: 'Start with ₹100 - ₹300 minimum order trade',
+        reward: 20.0,
+        rewardText: '₹20.00 RP',
+        isEligible: false,
+        isClaimed: false,
+        actionType: 'navigate',
+        navigationRoute: '/buy-rp',
+      ),
+    );
+
+    final task4 = rewardsState.tasks.firstWhere(
+      (t) => t.id == 'first_invite',
+      orElse: () => const RewardTask(
+        id: 'first_invite',
+        title: 'Invite First Team Member',
+        subtitle: 'Unlock lifetime 3-level rebate earnings',
+        reward: 50.0,
+        rewardText: '₹50.00 RP',
+        isEligible: false,
+        isClaimed: false,
+        actionType: 'navigate',
+        navigationRoute: '/team',
+      ),
+    );
 
     return Scaffold(
       body: AnimatedAmbientBackground(
@@ -32,7 +136,11 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             setState(() => _animSeed++);
-            await Future.delayed(const Duration(milliseconds: 300));
+            await Future.wait([
+              ref.read(rewardProvider.notifier).fetchNewbieRewards(),
+              ref.read(userProvider.notifier).fetchProfile(),
+              ref.read(walletProvider.notifier).fetchWallet(),
+            ]);
           },
           child: SingleChildScrollView(
             key: ValueKey('rewards_scroll_$_animSeed'),
@@ -52,9 +160,14 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
 
                 // ── 2. 3D Golden Welcome Bonus Hero Banner ──
                 Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildWelcomeHeroCard(isDark),
-                    )
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildWelcomeHeroCard(
+                    isDark,
+                    completedCount,
+                    totalTasks,
+                    progressPercent,
+                  ),
+                )
                     .animate()
                     .fadeIn(delay: 80.ms, duration: 400.ms)
                     .slideY(
@@ -106,16 +219,14 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                           vertical: 3.5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981)
-                              .withValues(alpha: 0.12),
+                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: const Color(0xFF10B981)
-                                .withValues(alpha: 0.28),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.28),
                           ),
                         ),
                         child: Text(
-                          '2 of 4 Completed',
+                          '$completedCount of $totalTasks Completed',
                           style: GoogleFonts.spaceGrotesk(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w800,
@@ -134,14 +245,17 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
-                      // Task 1: Verify Mobile Number (Claimed)
+                      // Task 1: Verify Mobile Number
                       _buildTaskTile(
                         context: context,
-                        title: 'Verify Mobile Number',
-                        subtitle: 'Primary account phone verification',
-                        reward: '₹10.00 RP',
+                        title: task1.title,
+                        subtitle: task1.subtitle,
+                        reward: task1.rewardText,
                         icon: LucideIcons.smartphone,
-                        isCompleted: true,
+                        isCompleted: task1.isClaimed,
+                        isClaimable: task1.actionType == 'claim',
+                        isClaiming: claimingTaskId == task1.id,
+                        onClaim: () => _handleClaim(task1),
                         accentColor: const Color(0xFF10B981),
                         gradientColors: isDark
                             ? [const Color(0xFF0B2B1F), const Color(0xFF103F2E)]
@@ -155,14 +269,17 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
 
                       const SizedBox(height: 12),
 
-                      // Task 2: Bind PhonePe UPI Address (Claimed)
+                      // Task 2: Bind PhonePe UPI Address
                       _buildTaskTile(
                         context: context,
-                        title: 'Bind PhonePe UPI Address',
-                        subtitle: 'Enables automatic ₹100 returns to PhonePe',
-                        reward: '₹20.00 RP',
+                        title: task2.title,
+                        subtitle: task2.subtitle,
+                        reward: task2.rewardText,
                         icon: LucideIcons.wallet,
-                        isCompleted: true,
+                        isCompleted: task2.isClaimed,
+                        isClaimable: task2.actionType == 'claim',
+                        isClaiming: claimingTaskId == task2.id,
+                        onClaim: () => _handleClaim(task2),
                         accentColor: const Color(0xFF8B5CF6),
                         gradientColors: isDark
                             ? [const Color(0xFF21133F), const Color(0xFF311C5E)]
@@ -170,20 +287,27 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                                 const Color(0xFFFAF5FF),
                                 const Color(0xFFF3E8FF),
                               ],
+                        actionLabel: task2.isClaimed || task2.actionType == 'claim'
+                            ? null
+                            : 'Bind PhonePe',
+                        onAction: () => context.push('/bind-payment'),
                         delayMs: 240,
                         isDark: isDark,
                       ),
 
                       const SizedBox(height: 12),
 
-                      // Task 3: Receive First L1 RP Order (Action Required)
+                      // Task 3: Receive First L1 RP Order
                       _buildTaskTile(
                         context: context,
-                        title: 'Receive First L1 RP Order',
-                        subtitle: 'Start with ₹100 - ₹300 minimum order trade',
-                        reward: '₹20.00 RP',
+                        title: task3.title,
+                        subtitle: task3.subtitle,
+                        reward: task3.rewardText,
                         icon: LucideIcons.shoppingBag,
-                        isCompleted: false,
+                        isCompleted: task3.isClaimed,
+                        isClaimable: task3.actionType == 'claim',
+                        isClaiming: claimingTaskId == task3.id,
+                        onClaim: () => _handleClaim(task3),
                         accentColor: const Color(0xFF0284C7),
                         gradientColors: isDark
                             ? [const Color(0xFF0C244C), const Color(0xFF11326E)]
@@ -191,7 +315,9 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                                 const Color(0xFFF0F9FF),
                                 const Color(0xFFE0F2FE),
                               ],
-                        actionLabel: 'Go to Buy RP',
+                        actionLabel: task3.isClaimed || task3.actionType == 'claim'
+                            ? null
+                            : 'Go to Buy RP',
                         onAction: () => context.go('/buy-rp'),
                         delayMs: 300,
                         isDark: isDark,
@@ -202,11 +328,14 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                       // Task 4: Invite First Team Member (Bonus Task)
                       _buildTaskTile(
                         context: context,
-                        title: 'Invite First Team Member',
-                        subtitle: 'Unlock lifetime 3-level rebate earnings',
-                        reward: '₹50.00 RP',
+                        title: task4.title,
+                        subtitle: task4.subtitle,
+                        reward: task4.rewardText,
                         icon: LucideIcons.users,
-                        isCompleted: false,
+                        isCompleted: task4.isClaimed,
+                        isClaimable: task4.actionType == 'claim',
+                        isClaiming: claimingTaskId == task4.id,
+                        onClaim: () => _handleClaim(task4),
                         accentColor: const Color(0xFFF59E0B),
                         gradientColors: isDark
                             ? [const Color(0xFF2C1E0A), const Color(0xFF3F2B0E)]
@@ -214,7 +343,9 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                                 const Color(0xFFFFFBEB),
                                 const Color(0xFFFEF3C7),
                               ],
-                        actionLabel: 'Invite Now',
+                        actionLabel: task4.isClaimed || task4.actionType == 'claim'
+                            ? null
+                            : 'Invite Now',
                         onAction: () => context.push('/team'),
                         delayMs: 360,
                         isDark: isDark,
@@ -227,78 +358,76 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
 
                 // ── 5. Instant Credit Notice Banner ──
                 Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF0F1A30).withValues(alpha: 0.85)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFFD97706)
-                                      .withValues(alpha: 0.35)
-                                : const Color(0xFFFDE68A),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFD97706)
-                                  .withValues(alpha: isDark ? 0.20 : 0.06),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(7),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF59E0B)
-                                    .withValues(alpha: 0.14),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                LucideIcons.sparkles,
-                                size: 16,
-                                color: Color(0xFFF59E0B),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Instant RP Balance Credit',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    'All claimed rewards are instantly reflected in your RP Balance and can be used to purchase higher tier orders or auto-transferred upon ₹100 cumulative profit.',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11.5,
-                                      color: isDark
-                                          ? const Color(0xFF94A3B8)
-                                          : const Color(0xFF64748B),
-                                      height: 1.35,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0F1A30).withValues(alpha: 0.85)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFFD97706).withValues(alpha: 0.35)
+                            : const Color(0xFFFDE68A),
                       ),
-                    )
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD97706)
+                              .withValues(alpha: isDark ? 0.20 : 0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF59E0B).withValues(alpha: 0.14),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.sparkles,
+                            size: 16,
+                            color: Color(0xFFF59E0B),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Instant RP Balance Credit',
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'All claimed rewards are instantly reflected in your RP Balance and can be used to purchase higher tier orders or auto-transferred upon ₹100 cumulative profit.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
                     .animate()
                     .fadeIn(delay: 420.ms, duration: 400.ms)
                     .slideY(begin: 0.08, end: 0, delay: 420.ms),
@@ -352,7 +481,11 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
               GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  context.pop();
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/home');
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.all(8),
@@ -434,7 +567,12 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
   }
 
   /// 3D Glowing Welcome Bonus Hero Card
-  Widget _buildWelcomeHeroCard(bool isDark) {
+  Widget _buildWelcomeHeroCard(
+    bool isDark,
+    int completedCount,
+    int totalTasks,
+    int progressPercent,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -541,7 +679,7 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
                     ),
                   ),
                   Text(
-                    '60% Completed',
+                    '$progressPercent% Completed',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -554,7 +692,7 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
-                  value: 0.6,
+                  value: totalTasks > 0 ? (completedCount / totalTasks) : 0.0,
                   minHeight: 6,
                   backgroundColor: Colors.black.withValues(alpha: 0.25),
                   valueColor: const AlwaysStoppedAnimation<Color>(
@@ -568,241 +706,301 @@ class _NewbieRewardsScreenState extends State<NewbieRewardsScreen> {
       ),
     );
   }
+}
 
-  /// High-End FinTech Task Tile with glowing border and staggered entrance
-  Widget _buildTaskTile({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required String reward,
-    required IconData icon,
-    required bool isCompleted,
-    required Color accentColor,
-    required List<Color> gradientColors,
-    required int delayMs,
-    required bool isDark,
-    String? actionLabel,
-    VoidCallback? onAction,
-  }) {
-    return Container(
-          padding: const EdgeInsets.all(16),
+/// High-End FinTech Task Tile with glowing border and staggered entrance
+Widget _buildTaskTile({
+  required BuildContext context,
+  required String title,
+  required String subtitle,
+  required String reward,
+  required IconData icon,
+  required bool isCompleted,
+  required Color accentColor,
+  required List<Color> gradientColors,
+  required int delayMs,
+  required bool isDark,
+  bool isClaimable = false,
+  bool isClaiming = false,
+  VoidCallback? onClaim,
+  String? actionLabel,
+  VoidCallback? onAction,
+}) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: gradientColors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: accentColor.withValues(alpha: isDark ? 0.45 : 0.35),
+        width: 1.3,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: accentColor.withValues(alpha: isDark ? 0.20 : 0.08),
+          blurRadius: 14,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        // Icon Container
+        Container(
+          padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: gradientColors,
+              colors: [accentColor, accentColor.withValues(alpha: 0.75)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: accentColor.withValues(alpha: isDark ? 0.45 : 0.35),
-              width: 1.3,
-            ),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withValues(alpha: isDark ? 0.20 : 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
+                color: accentColor.withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Row(
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+
+        const SizedBox(width: 12),
+
+        // Title & Subtitle Column
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon Container
-              Container(
-                padding: const EdgeInsets.all(11),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [accentColor, accentColor.withValues(alpha: 0.75)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accentColor.withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-
-              const SizedBox(width: 12),
-
-              // Title & Subtitle Column
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          'Reward: ',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          reward,
-                          style: GoogleFonts.spaceGrotesk(
-                            color: const Color(0xFF10B981),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              Text(
+                title,
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    'Reward: ',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    reward,
+                    style: GoogleFonts.spaceGrotesk(
+                      color: const Color(0xFF10B981),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
 
-              const SizedBox(width: 8),
+        const SizedBox(width: 8),
 
-              // Completion Status / Action Button
-              if (isCompleted)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+        // Completion Status / Claim Button / Action Button
+        if (isCompleted)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 5,
+            ),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF059669), Color(0xFF10B981)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.30),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  LucideIcons.check,
+                  size: 12,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'CLAIMED',
+                  style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
                   ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF059669), Color(0xFF10B981)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.30),
-                        blurRadius: 8,
-                      ),
-                    ],
+                ),
+              ],
+            ),
+          )
+        else if (isClaimable)
+          InkWell(
+            onTap: isClaiming ? null : onClaim,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 7.5,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF059669),
+                    Color(0xFF10B981),
+                    Color(0xFF34D399),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.40),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.check,
-                        size: 12,
-                        color: Colors.white,
+                ],
+              ),
+              child: isClaiming
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'CLAIMED',
-                        style: GoogleFonts.spaceGrotesk(
-                          color: Colors.white,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (actionLabel != null && onAction != null)
-                InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    onAction();
-                  },
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          accentColor,
-                          accentColor.withValues(alpha: 0.85),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accentColor.withValues(alpha: 0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
+                    )
+                  : Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          actionLabel,
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
                         const Icon(
-                          LucideIcons.arrowRight,
+                          LucideIcons.sparkles,
                           size: 13,
                           color: Colors.white,
                         ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Claim',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                )
-              else
-                ElevatedButton(
-                  onPressed: () {
-                    CustomSnackBar.showInfo(
-                      context: context,
-                      message: 'Fulfill requirement to claim reward.',
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accentColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Go', style: TextStyle(fontSize: 11.5)),
+            ),
+          )
+        else if (actionLabel != null && onAction != null)
+          InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onAction();
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    accentColor,
+                    accentColor.withValues(alpha: 0.85),
+                  ],
                 ),
-            ],
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    actionLabel,
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    LucideIcons.arrowRight,
+                    size: 13,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ElevatedButton(
+            onPressed: () {
+              CustomSnackBar.showInfo(
+                context: context,
+                message: 'Fulfill requirement to claim reward.',
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 6,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Go', style: TextStyle(fontSize: 11.5)),
           ),
-        )
-        .animate()
-        .fadeIn(delay: delayMs.ms, duration: 400.ms)
-        .slideY(
-          begin: 0.08,
-          end: 0,
-          delay: delayMs.ms,
-          curve: Curves.easeOutCubic,
-        );
-  }
+      ],
+    ),
+  )
+      .animate()
+      .fadeIn(delay: delayMs.ms, duration: 400.ms)
+      .slideY(
+        begin: 0.08,
+        end: 0,
+        delay: delayMs.ms,
+        curve: Curves.easeOutCubic,
+      );
 }

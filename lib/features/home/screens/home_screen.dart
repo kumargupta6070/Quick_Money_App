@@ -26,6 +26,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch fresh live data from all backend endpoints upon entering Home Screen
+    Future.microtask(() => _handleRefresh());
+  }
+
   Future<void> _handleRefresh() async {
     await Future.wait([
       ref.read(userProvider.notifier).fetchProfile(),
@@ -43,16 +50,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user = ref.watch(userProvider);
     final dailyProfit = ref.watch(profitProvider);
     final stats = {
-      'buyQuantity': dailyProfit.purchaseNumber > 0
-          ? dailyProfit.purchaseNumber
-          : 1,
-      'buyAmount': dailyProfit.purchaseAmount > 0
-          ? dailyProfit.purchaseAmount
-          : 1550.0,
-      'sellToday': dailyProfit.sellAmount > 0 ? dailyProfit.sellAmount : 1599.0,
-      'totalRevenue': dailyProfit.totalIncome > 0
-          ? dailyProfit.totalIncome
-          : 38.75,
+      'buyQuantity': dailyProfit.purchaseNumber,
+      'buyAmount': dailyProfit.purchaseAmount,
+      'sellToday': dailyProfit.sellAmount,
+      'totalRevenue': dailyProfit.totalIncome,
     };
 
     return Scaffold(
