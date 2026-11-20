@@ -46,9 +46,17 @@ class ApiEndpoints {
 
   // 10. Admin Operations
   static const String adminStats = '/admin/stats';
+  static const String adminPendingPayouts = '/admin/pending-payouts';
+  static String adminSettlePayout(int id) => '/admin/payouts/$id/settle';
+  static const String adminPackages = '/admin/packages';
+  static String adminPackageDetail(int id) => '/admin/packages/$id';
+  static const String adminUsers = '/admin/users';
+  static String adminUserStatus(int id) => '/admin/users/$id/status';
+  static String adminUserAdjustBalance(int id) =>
+      '/admin/users/$id/adjust-balance';
+  static const String adminSettings = '/admin/settings';
+  static const String adminBroadcast = '/admin/broadcast';
   static const String adminPendingOrders = '/admin/pending-orders';
   static const String adminApproveOrder = '/admin/orders/approve';
   static const String adminRejectOrder = '/admin/orders/reject';
-  static const String adminPendingPayouts = '/admin/pending-payouts';
-  static const String adminSettlePayout = '/admin/payouts/settle';
 }

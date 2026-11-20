@@ -16,6 +16,10 @@ class TeamOverview {
   final String level2Percent;
   final String level3Percent;
 
+  int get level1Rate => int.tryParse(level1Percent.replaceAll('%', '').trim()) ?? 5;
+  int get level2Rate => int.tryParse(level2Percent.replaceAll('%', '').trim()) ?? 3;
+  int get level3Rate => int.tryParse(level3Percent.replaceAll('%', '').trim()) ?? 1;
+
   const TeamOverview({
     this.totalEarnings = 0.0,
     this.level1Earnings = 0.0,

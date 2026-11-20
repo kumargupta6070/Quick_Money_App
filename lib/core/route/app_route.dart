@@ -22,6 +22,11 @@ import '../../features/referral/screens/invite_screen.dart';
 import '../../features/rewards/screens/newbie_rewards_screen.dart';
 import '../../features/transactions/screens/transaction_history_screen.dart';
 import '../../features/notification/screens/notification_screen.dart';
+import '../../features/admin/screens/admin_dashboard_screen.dart';
+import '../../features/admin/screens/admin_payouts_screen.dart';
+import '../../features/admin/screens/admin_orders_screen.dart';
+import '../../features/admin/screens/admin_users_screen.dart';
+import '../../features/admin/screens/admin_settings_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -265,6 +270,53 @@ final GoRouter appRouter = GoRouter(
         context: context,
         state: state,
         child: const NotificationScreen(),
+      ),
+    ),
+
+    // ── Super Admin Mobile Command Center Routes ──
+    GoRoute(
+      path: '/admin/dashboard',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const AdminDashboardScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/payouts',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const AdminPayoutsScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/orders',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const AdminOrdersScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/users',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const AdminUsersScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/settings',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const AdminSettingsScreen(),
       ),
     ),
   ],
