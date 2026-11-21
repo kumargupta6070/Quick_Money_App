@@ -116,12 +116,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       CustomLoader.hide(context);
 
       if (success) {
+        final authState = ref.read(authProvider);
+        final isAdmin = authState.isAdmin || authState.role == 'admin';
         CustomSnackBar.showTopSuccess(
           context: context,
-          message: 'Welcome back to Quick Money! Login successful.',
-          icon: LucideIcons.shieldCheck,
+          message: isAdmin
+              ? 'Super Admin authenticated! Entering Management Suite.'
+              : 'Welcome back to Quick Money! Login successful.',
+          icon: isAdmin ? LucideIcons.shieldAlert : LucideIcons.shieldCheck,
         );
-        context.go('/home');
+        if (isAdmin) {
+          context.go('/admin/dashboard');
+        } else {
+          context.go('/home');
+        }
       } else {
         final err =
             ref.read(authProvider).error ??

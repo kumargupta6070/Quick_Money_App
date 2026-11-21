@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/providers/navigation_provider.dart';
 
 /// Quick Action Management Hub (4 Big Administrative Control Suites)
-class AdminManagementHub extends StatelessWidget {
+class AdminManagementHub extends ConsumerWidget {
   final AdminStats stats;
   final bool isDark;
 
@@ -27,6 +28,8 @@ class AdminManagementHub extends StatelessWidget {
     required VoidCallback onTap,
     required bool isDark,
   }) {
+    final primaryColor = iconColors.first;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -38,16 +41,19 @@ class AdminManagementHub extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: isDark
+                ? Color.alphaBlend(primaryColor.withValues(alpha: 0.08), const Color(0xFF1E293B))
+                : Color.alphaBlend(primaryColor.withValues(alpha: 0.05), Colors.white),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              color: primaryColor.withValues(alpha: isDark ? 0.40 : 0.25),
+              width: 1.1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: primaryColor.withValues(alpha: isDark ? 0.12 : 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -136,7 +142,7 @@ class AdminManagementHub extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -169,7 +175,7 @@ class AdminManagementHub extends StatelessWidget {
           badgeText: '${stats.activePackages} Active',
           icon: LucideIcons.packagePlus,
           iconColors: const [Color(0xFF0284C7), Color(0xFF2563EB)],
-          onTap: () => context.push('/admin/orders'),
+          onTap: () => ref.read(adminSelectedTabProvider.notifier).selectTab(2),
           isDark: isDark,
         ),
         const SizedBox(height: 10),
@@ -180,7 +186,7 @@ class AdminManagementHub extends StatelessWidget {
           badgeColor: stats.pendingPayoutsCount > 0 ? const Color(0xFFE11D48) : const Color(0xFF10B981),
           icon: LucideIcons.banknote,
           iconColors: const [Color(0xFF059669), Color(0xFF10B981)],
-          onTap: () => context.push('/admin/payouts'),
+          onTap: () => ref.read(adminSelectedTabProvider.notifier).selectTab(3),
           isDark: isDark,
         ),
         const SizedBox(height: 10),
@@ -190,7 +196,7 @@ class AdminManagementHub extends StatelessWidget {
           badgeText: '${stats.totalUsers} Users',
           icon: LucideIcons.users,
           iconColors: const [Color(0xFF7C3AED), Color(0xFF9333EA)],
-          onTap: () => context.push('/admin/users'),
+          onTap: () => ref.read(adminSelectedTabProvider.notifier).selectTab(1),
           isDark: isDark,
         ),
         const SizedBox(height: 10),
@@ -200,7 +206,7 @@ class AdminManagementHub extends StatelessWidget {
           badgeText: 'Live Config',
           icon: LucideIcons.sliders,
           iconColors: const [Color(0xFFD97706), Color(0xFFF59E0B)],
-          onTap: () => context.push('/admin/settings'),
+          onTap: () => ref.read(adminSelectedTabProvider.notifier).selectTab(4),
           isDark: isDark,
         ),
       ],

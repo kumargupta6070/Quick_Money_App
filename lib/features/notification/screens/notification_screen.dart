@@ -4,7 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:quick_money/core/providers/auth_provider.dart';
 import 'package:quick_money/core/utils/custom_snackbar.dart';
+import 'package:quick_money/features/admin/widgets/admin_broadcast_dialog.dart';
 import 'package:quick_money/features/notification/models/notification_model.dart';
 import 'package:quick_money/features/notification/providers/notification_provider.dart';
 import 'package:quick_money/features/notification/widgets/notification_detail_modal.dart';
@@ -137,6 +139,8 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   Widget build(BuildContext context) {
     final notifications = ref.watch(notificationProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
+    final authState = ref.watch(authProvider);
+    final isSuperAdmin = authState.isAdmin || authState.role == 'admin';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final filteredNotifications = notifications.where((n) {
@@ -159,6 +163,28 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     );
 
     return Scaffold(
+      floatingActionButton: isSuperAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AdminBroadcastDialog(isDark: isDark),
+                );
+              },
+              backgroundColor: const Color(0xFF8B5CF6),
+              icon: const Icon(LucideIcons.megaphone, color: Colors.white, size: 20),
+              label: Text(
+                'Announce Broadcast',
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  color: Colors.white,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ).animate().scale(duration: 300.ms, curve: Curves.easeOutBack)
+          : null,
       body: AnimatedAmbientBackground(
         child: RefreshIndicator(
           onRefresh: () async {

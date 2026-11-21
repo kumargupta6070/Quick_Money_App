@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/providers/navigation_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 
-/// Urgent Pending Payout Alert Banner
-class AdminPendingPayoutAlert extends StatelessWidget {
+/// Urgent Pending Payout Alert Banner with Crimson Sunset Gradient
+class AdminPendingPayoutAlert extends ConsumerWidget {
   final AdminStats stats;
   final bool isDark;
 
@@ -18,7 +19,7 @@ class AdminPendingPayoutAlert extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -50,7 +51,7 @@ class AdminPendingPayoutAlert extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${stats.pendingPayoutsCount} PENDING PAYOUTS AWAITING SETTLEMENT',
+                  '${stats.pendingPayoutsCount} PENDING PHONEPE PAYOUTS',
                   style: GoogleFonts.spaceGrotesk(
                     color: Colors.white,
                     fontSize: 11,
@@ -71,11 +72,13 @@ class AdminPendingPayoutAlert extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () => context.push('/admin/payouts'),
+            onPressed: () {
+              ref.read(adminSelectedTabProvider.notifier).selectTab(3);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: const Color(0xFFBE123C),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),

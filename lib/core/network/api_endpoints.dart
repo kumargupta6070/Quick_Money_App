@@ -48,6 +48,7 @@ class ApiEndpoints {
   static const String adminStats = '/admin/stats';
   static const String adminPendingPayouts = '/admin/pending-payouts';
   static String adminSettlePayout(int id) => '/admin/payouts/$id/settle';
+  static String adminPayoutReject(int id) => '/admin/payouts/$id/reject';
   static const String adminPackages = '/admin/packages';
   static String adminPackageDetail(int id) => '/admin/packages/$id';
   static const String adminUsers = '/admin/users';

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/user_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/widgets/gradient_text.dart';
@@ -17,8 +18,9 @@ import '../../notification/providers/notification_provider.dart';
 /// Fully connected to live backend APIs: GET /api/v1/users/profile & GET /api/v1/notifications.
 class HomeHeader extends ConsumerStatefulWidget {
   final double? balance;
+  final bool? showBalance;
 
-  const HomeHeader({super.key, this.balance});
+  const HomeHeader({super.key, this.balance, this.showBalance});
 
   @override
   ConsumerState<HomeHeader> createState() => _HomeHeaderState();
@@ -37,8 +39,11 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
+    final authState = ref.watch(authProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     final currentBalance = widget.balance ?? user.balance;
+    final isSuperAdmin = authState.isAdmin || authState.role == 'admin';
+    final shouldShowBalance = widget.showBalance ?? (!isSuperAdmin);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -120,68 +125,69 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
             .fade(duration: 400.ms)
             .slideX(begin: -0.15, end: 0, duration: 400.ms),
 
-        // Right side: Live Balance Pill & Notification Bell
+        // Right side: Live Balance Pill (User only) & Notification Bell
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Glowing Gold Live Balance Pill
-            GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                context.push('/daily-details');
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 11, vertical: 6.5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
-                    width: 1.2,
+            if (shouldShowBalance) ...[
+              // Glowing Gold Live Balance Pill
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/daily-details');
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 11, vertical: 6.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
-                      blurRadius: 12,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      LucideIcons.zap,
-                      color: Color(0xFFF59E0B),
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        CurrencyFormatter.format(currentBalance),
-                        style: GoogleFonts.spaceGrotesk(
-                          color: const Color(0xFFFDE68A),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.2,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        LucideIcons.zap,
+                        color: Color(0xFFF59E0B),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          CurrencyFormatter.format(currentBalance),
+                          style: GoogleFonts.spaceGrotesk(
+                            color: const Color(0xFFFDE68A),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            )
-                .animate()
-                .fade(delay: 200.ms, duration: 400.ms)
-                .scale(
-                  begin: const Offset(0.85, 0.85),
-                  delay: 200.ms,
-                  duration: 400.ms,
-                ),
-
-            const SizedBox(width: 8),
+              )
+                  .animate()
+                  .fade(delay: 200.ms, duration: 400.ms)
+                  .scale(
+                    begin: const Offset(0.85, 0.85),
+                    delay: 200.ms,
+                    duration: 400.ms,
+                  ),
+              const SizedBox(width: 8),
+            ],
 
             // Notification Bell with dynamic live unread badge count
             GestureDetector(

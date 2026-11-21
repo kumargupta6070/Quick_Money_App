@@ -22,7 +22,7 @@ import '../../features/referral/screens/invite_screen.dart';
 import '../../features/rewards/screens/newbie_rewards_screen.dart';
 import '../../features/transactions/screens/transaction_history_screen.dart';
 import '../../features/notification/screens/notification_screen.dart';
-import '../../features/admin/screens/admin_dashboard_screen.dart';
+import '../../features/admin/screens/admin_portal_shell.dart';
 import '../../features/admin/screens/admin_payouts_screen.dart';
 import '../../features/admin/screens/admin_orders_screen.dart';
 import '../../features/admin/screens/admin_users_screen.dart';
@@ -280,7 +280,7 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (context, state) => PageTransitions.slideRight(
         context: context,
         state: state,
-        child: const AdminDashboardScreen(),
+        child: const AdminPortalShell(),
       ),
     ),
     GoRoute(

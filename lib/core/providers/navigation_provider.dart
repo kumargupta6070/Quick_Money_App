@@ -68,3 +68,18 @@ final mineAnimationTriggerProvider =
   return MineAnimationTriggerNotifier();
 });
 
+/// Active tab notifier for Super Admin Portal Shell (0=Dashboard, 1=Users, 2=Packages, 3=Payouts, 4=Settings)
+class AdminSelectedTabNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void selectTab(int index) {
+    state = index;
+  }
+}
+
+final adminSelectedTabProvider =
+    NotifierProvider<AdminSelectedTabNotifier, int>(() {
+  return AdminSelectedTabNotifier();
+});
+

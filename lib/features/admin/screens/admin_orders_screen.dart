@@ -6,10 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
-import '../../../core/utils/currency_formatter.dart';
-import '../../../core/utils/custom_snackbar.dart';
-import '../../../shared/models/order_model.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
+import '../widgets/admin_order_package_card.dart';
+import '../widgets/admin_package_dialog.dart';
+import '../widgets/admin_screen_hero_header.dart';
 
 class AdminOrdersScreen extends ConsumerStatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -19,26 +19,30 @@ class AdminOrdersScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
-  String _selectedLevel = 'ALL';
   final List<String> _levels = ['ALL', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7'];
+  String _selectedLevel = 'ALL';
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(adminProvider.notifier).fetchPackages(level: _selectedLevel);
+      ref.read(adminProvider.notifier).fetchPackages();
     });
   }
 
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
-    await ref.read(adminProvider.notifier).fetchPackages(level: _selectedLevel);
+    await ref.read(adminProvider.notifier).fetchPackages(
+          level: _selectedLevel == 'ALL' ? null : _selectedLevel,
+        );
   }
 
   void _filterLevel(String lvl) {
     HapticFeedback.selectionClick();
     setState(() => _selectedLevel = lvl);
-    ref.read(adminProvider.notifier).fetchPackages(level: lvl);
+    ref.read(adminProvider.notifier).fetchPackages(
+          level: lvl == 'ALL' ? null : lvl,
+        );
   }
 
   @override
@@ -48,20 +52,13 @@ class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
     final packages = adminState.packages;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'RP Order Book Manager',
-          style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, fontSize: 18),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw, size: 18),
-            onPressed: _onRefresh,
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showPackageDialog(context, null),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (ctx) => AdminPackageDialog(isDark: isDark),
+          );
+        },
         backgroundColor: const Color(0xFF0284C7),
         icon: const Icon(LucideIcons.plus, color: Colors.white, size: 18),
         label: Text(
@@ -75,51 +72,94 @@ class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
       body: AnimatedAmbientBackground(
         child: Column(
           children: [
-            // Level Selector Filter Row
-            Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+            // 1. Signature Royal FinTech Header with HomeHeader
+            AdminScreenHeroHeader(
+              title: 'RP Market Packages',
+              icon: LucideIcons.packagePlus,
+              badgeText: '${packages.length} Active',
+              badgeColor: const Color(0xFF0284C7),
+              bottom: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                itemCount: _levels.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, i) {
-                  final lvl = _levels[i];
-                  final isSelected = lvl == _selectedLevel;
-                  return ChoiceChip(
-                    label: Text(lvl),
-                    selected: isSelected,
-                    onSelected: (_) => _filterLevel(lvl),
-                    selectedColor: const Color(0xFF0284C7),
-                    labelStyle: GoogleFonts.spaceGrotesk(
-                      fontWeight: FontWeight.w800,
-                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
-                    ),
-                  );
-                },
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: _levels.map((lvl) {
+                    final isSelected = lvl == _selectedLevel;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => _filterLevel(lvl),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: isSelected
+                                ? const LinearGradient(
+                                    colors: [
+                                      Color(0xFF0284C7),
+                                      Color(0xFF2563EB),
+                                    ],
+                                  )
+                                : null,
+                            color: isSelected
+                                ? null
+                                : Colors.black.withValues(alpha: 0.32),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF38BDF8)
+                                  : Colors.white.withValues(alpha: 0.25),
+                              width: 1,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFF0284C7)
+                                          .withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            lvl,
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 12,
+                              fontWeight: isSelected
+                                  ? FontWeight.w900
+                                  : FontWeight.w700,
+                              color: isSelected ? Colors.white : Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
 
-            // Packages List
+            const SizedBox(height: 10),
+
+            // 2. Packages List with Staggered Entrance Animations
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _onRefresh,
                 color: const Color(0xFF0284C7),
                 child: packages.isEmpty && !adminState.isLoading
-                    ? Center(
-                        child: Text(
-                          'No packages found for tier $_selectedLevel',
-                          style: GoogleFonts.inter(color: Colors.grey),
-                        ),
-                      )
+                    ? _buildEmptyState(isDark)
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 80),
                         itemCount: packages.length,
-                        itemBuilder: (context, index) {
-                          final pkg = packages[index];
-                          return _buildPackageCard(context, pkg, isDark)
-                              .animate(delay: Duration(milliseconds: 30 * index))
+                        itemBuilder: (context, i) {
+                          return AdminOrderPackageCard(
+                            package: packages[i],
+                            isDark: isDark,
+                          )
+                              .animate(delay: Duration(milliseconds: 40 * i))
                               .fadeIn(duration: 250.ms)
                               .slideY(begin: 0.05, end: 0);
                         },
@@ -132,327 +172,42 @@ class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
     );
   }
 
-  Widget _buildPackageCard(BuildContext context, OrderModel pkg, bool isDark) {
-    final isActive = pkg.status.name.toLowerCase() == 'active';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isActive
-              ? const Color(0xFF0284C7).withValues(alpha: isDark ? 0.35 : 0.25)
-              : const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.35 : 0.25),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Header: Level Badge + Available Quantity + Status Switch
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0284C7), Color(0xFF2563EB)],
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      pkg.level,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${pkg.orderQuantity} orders available',
-                    style: GoogleFonts.inter(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: (isActive ? const Color(0xFF10B981) : const Color(0xFFF59E0B))
-                          .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      isActive ? 'ACTIVE' : 'PAUSED',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        color: isActive ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Switch.adaptive(
-                    value: isActive,
-                    activeThumbColor: const Color(0xFF10B981),
-                    onChanged: (val) async {
-                      final newStatus = val ? 'active' : 'paused';
-                      final ok = await ref.read(adminProvider.notifier).updatePackage(
-                            id: pkg.id,
-                            status: newStatus,
-                          );
-                      if (context.mounted && ok) {
-                        CustomSnackBar.showSuccess(
-                          context: context,
-                          message: 'Package status updated to $newStatus',
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              LucideIcons.packageX,
+              size: 40,
+              color: Color(0xFF0284C7),
+            ),
           ),
-
-          const SizedBox(height: 10),
-
-          // Main Price & Final RP Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                CurrencyFormatter.format(pkg.orderAmount),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              Text(
-                'Final: ${pkg.finalRp.toStringAsFixed(1)} RP',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-            ],
+          const SizedBox(height: 14),
+          Text(
+            'No Packages in $_selectedLevel',
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
           ),
-
-          const SizedBox(height: 10),
-
-          // Chips Breakdown
-          Row(
-            children: [
-              _buildRewardChip('Reward: +₹${pkg.reward.toStringAsFixed(2)}', const Color(0xFFD97706), isDark),
-              const SizedBox(width: 8),
-              _buildRewardChip('Bonus: +₹${pkg.bonus.toStringAsFixed(2)}', const Color(0xFF059669), isDark),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Action Buttons: Edit & Delete
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: () => _showPackageDialog(context, pkg),
-                icon: const Icon(LucideIcons.pencil, size: 14),
-                label: const Text('Edit Details'),
-              ),
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () => _confirmDelete(context, pkg),
-                icon: const Icon(LucideIcons.trash2, size: 14, color: Color(0xFFEF4444)),
-                label: const Text('Delete', style: TextStyle(color: Color(0xFFEF4444))),
-              ),
-            ],
+          const SizedBox(height: 4),
+          Text(
+            'Tap "+ New RP Package" to create one.',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRewardChip(String label, Color color, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.20 : 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.spaceGrotesk(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w800,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, OrderModel pkg) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Delete RP Package?', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900)),
-        content: Text('Are you sure you want to remove package ${CurrencyFormatter.format(pkg.orderAmount)}? This cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final ok = await ref.read(adminProvider.notifier).deletePackage(pkg.id);
-              if (context.mounted && ok) {
-                CustomSnackBar.showSuccess(context: context, message: 'Package deleted successfully');
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444), foregroundColor: Colors.white),
-            child: const Text('Confirm Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPackageDialog(BuildContext context, OrderModel? pkg) {
-    final isEditing = pkg != null;
-    final amountCtrl = TextEditingController(text: isEditing ? pkg.orderAmount.toString() : '');
-    final qtyCtrl = TextEditingController(text: isEditing ? pkg.orderQuantity.toString() : '50');
-    final rewardCtrl = TextEditingController(text: isEditing ? pkg.reward.toString() : '');
-    final bonusCtrl = TextEditingController(text: isEditing ? pkg.bonus.toString() : '2.0');
-    String level = isEditing ? pkg.level : (_selectedLevel == 'ALL' ? 'L1' : _selectedLevel);
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: Text(
-                isEditing ? 'Edit RP Package' : 'Create RP Package',
-                style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900),
-              ),
-              content: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Tier Dropdown
-                      DropdownButtonFormField<String>(
-                        initialValue: level,
-                        decoration: const InputDecoration(labelText: 'Market Level Tier'),
-                        items: ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
-                            .map((l) => DropdownMenuItem(value: l, child: Text(l)))
-                            .toList(),
-                        onChanged: (v) => setDialogState(() => level = v ?? 'L1'),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: amountCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Order Amount (₹)'),
-                        validator: (v) => v == null || double.tryParse(v) == null ? 'Valid amount required' : null,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: qtyCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Available Orders Quantity'),
-                        validator: (v) => v == null || int.tryParse(v) == null ? 'Valid quantity required' : null,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: rewardCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Reward Profit (₹)'),
-                        validator: (v) => v == null || double.tryParse(v) == null ? 'Valid reward required' : null,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: bonusCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(labelText: 'Bonus Profit (₹)'),
-                        validator: (v) => v == null || double.tryParse(v) == null ? 'Valid bonus required' : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (formKey.currentState?.validate() ?? false) {
-                      Navigator.pop(ctx);
-                      final amt = double.parse(amountCtrl.text.trim());
-                      final qty = int.parse(qtyCtrl.text.trim());
-                      final rew = double.parse(rewardCtrl.text.trim());
-                      final bon = double.parse(bonusCtrl.text.trim());
-
-                      bool ok;
-                      if (isEditing) {
-                        ok = await ref.read(adminProvider.notifier).updatePackage(
-                              id: pkg.id,
-                              orderAmount: amt,
-                              orderQuantity: qty,
-                              reward: rew,
-                              bonus: bon,
-                              level: level,
-                            );
-                      } else {
-                        ok = await ref.read(adminProvider.notifier).createPackage(
-                              orderAmount: amt,
-                              orderQuantity: qty,
-                              reward: rew,
-                              bonus: bon,
-                              level: level,
-                              status: 'active',
-                            );
-                      }
-                      if (context.mounted && ok) {
-                        CustomSnackBar.showSuccess(
-                          context: context,
-                          message: isEditing ? 'Package updated successfully!' : 'New package created!',
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0284C7),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(isEditing ? 'Save Changes' : 'Create Package'),
-                ),
-              ],
-            );
-          },
-        );
-      },
     );
   }
 }

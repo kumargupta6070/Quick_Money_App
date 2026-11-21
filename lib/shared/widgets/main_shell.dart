@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/providers/auth_provider.dart';
 import '../../core/providers/navigation_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../features/admin/screens/admin_portal_shell.dart';
 import 'floating_support_button.dart';
 
 /// Main Application Shell containing the 4 primary tabs: Home, Buy RP, Sell RP, Mine.
@@ -42,6 +44,11 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    if (authState.isAdmin || authState.role == 'admin') {
+      return const AdminPortalShell();
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentIndex = widget.navigationShell.currentIndex;
 

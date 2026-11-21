@@ -22,20 +22,26 @@ class AdminFinancialMetricsGrid extends StatelessWidget {
     required String subtitle,
     required IconData icon,
     required Color accentColor,
+    required List<Color> bgGradientColors,
     required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: bgGradientColors,
+        ),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: accentColor.withValues(alpha: isDark ? 0.35 : 0.25),
+          color: accentColor.withValues(alpha: isDark ? 0.45 : 0.35),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withValues(alpha: isDark ? 0.12 : 0.05),
-            blurRadius: 10,
+            color: accentColor.withValues(alpha: isDark ? 0.16 : 0.08),
+            blurRadius: 12,
             offset: const Offset(0, 3),
           ),
         ],
@@ -138,6 +144,9 @@ class AdminFinancialMetricsGrid extends StatelessWidget {
               subtitle: '${stats.totalOrders} total market orders',
               icon: LucideIcons.trendingUp,
               accentColor: const Color(0xFF0284C7),
+              bgGradientColors: isDark
+                  ? const [Color(0xFF0C2340), Color(0xFF1E293B)]
+                  : const [Color(0xFFF0F9FF), Color(0xFFE0F2FE)],
               isDark: isDark,
             ),
             _buildMetricTile(
@@ -146,6 +155,9 @@ class AdminFinancialMetricsGrid extends StatelessWidget {
               subtitle: '${stats.activeUsers} active retail traders',
               icon: LucideIcons.wallet,
               accentColor: const Color(0xFF10B981),
+              bgGradientColors: isDark
+                  ? const [Color(0xFF063529), Color(0xFF1E293B)]
+                  : const [Color(0xFFECFDF5), Color(0xFFD1FAE5)],
               isDark: isDark,
             ),
             _buildMetricTile(
@@ -154,6 +166,9 @@ class AdminFinancialMetricsGrid extends StatelessWidget {
               subtitle: '100% automated payouts',
               icon: LucideIcons.shieldCheck,
               accentColor: const Color(0xFF8B5CF6),
+              bgGradientColors: isDark
+                  ? const [Color(0xFF28104E), Color(0xFF1E293B)]
+                  : const [Color(0xFFF5F3FF), Color(0xFFEDE9FE)],
               isDark: isDark,
             ),
             _buildMetricTile(
@@ -162,6 +177,9 @@ class AdminFinancialMetricsGrid extends StatelessWidget {
               subtitle: '${stats.completedOrders} completed trades',
               icon: LucideIcons.package,
               accentColor: const Color(0xFFF59E0B),
+              bgGradientColors: isDark
+                  ? const [Color(0xFF3B1D04), Color(0xFF1E293B)]
+                  : const [Color(0xFFFFFBEB), Color(0xFFFEF3C7)],
               isDark: isDark,
             ),
           ],
