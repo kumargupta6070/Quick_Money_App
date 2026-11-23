@@ -231,6 +231,13 @@ class BrevoMailerService {
           Enter this 6-digit security code in your Quick Money mobile app to complete verification.
         </p>
 
+        <!-- Official Website Portal Button -->
+        <div style="margin: 20px 0 16px; text-align: center;">
+          <a href="https://quick-moneey.netlify.app" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); color: #FFFFFF; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25); letter-spacing: 0.3px;">
+            🌐 Visit Official Website: quick-moneey.netlify.app
+          </a>
+        </div>
+
         <!-- Security Warning Notice -->
         <div class="security-notice">
           <div class="notice-title">⚠️ Security Advisory</div>
@@ -244,6 +251,9 @@ class BrevoMailerService {
       <div class="footer">
         <p style="margin: 0 0 6px;">
           This is an automated security transmission from <strong>Quick Money FinTech Ltd.</strong>
+        </p>
+        <p style="margin: 0 0 6px;">
+          Official Website: <a href="https://quick-moneey.netlify.app" target="_blank" style="font-weight: 600; color: #0284C7;">https://quick-moneey.netlify.app</a>
         </p>
         <p style="margin: 0;">
           Need support? Reach out at <a href="mailto:quick.moneey.in@gmail.com">quick.moneey.in@gmail.com</a><br>
@@ -263,13 +273,71 @@ class BrevoMailerService {
   async sendOtpEmail({ toEmail, otp, type = 'register' }) {
       const htmlContent = this._buildLightFinTechEmailTemplate({ otp, type });
       const fromName = (process.env.BREVO_FROM_NAME || 'Quick Money Security').replace(/["']/g, '');
-      const fromEmail = process.env.EMAIL_USER || (process.env.BREVO_FROM_EMAIL || 'quick.moneey.in@gmail.com').replace(/["']/g, '');
+      const fromEmail = process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER || 'quick.moneey.in@gmail.com';
 
       const subject = type === 'register'
         ? `🔐 Quick Money Registration OTP: ${otp}`
         : (type === 'forgot_password' ? `🔑 Quick Money Password Reset OTP: ${otp}` : `🛡️ Quick Money Verification Code: ${otp}`);
 
-      // 1. High-Priority for Render Free Plan: Google Apps Script HTTPS Webhook (Port 443 - Never Blocked)
+      // 1. TOP PRIORITY: Brevo HTTPS REST API (Port 443 - 100% Reliable on Render Free Tier)
+      const brevoKey = (
+        process.env.BREVO_API_KEY ||
+        process.env.BREVO_KEY ||
+        process.env.BREVO_SMTP_KEY ||
+        process.env.SENDINBLUE_API_KEY
+      )?.replace(/["'\s]/g, '');
+
+      if (brevoKey && brevoKey.length > 5) {
+        try {
+          const controller = new AbortController();
+          const tId = setTimeout(() => controller.abort(), 7000);
+
+          // Try candidate verified sender emails
+          const senderCandidates = [
+            process.env.BREVO_FROM_EMAIL,
+            process.env.EMAIL_USER,
+            'kumargupta6070@gmail.com',
+            'quick.moneey.in@gmail.com'
+          ].filter(Boolean).map(e => e.replace(/["'\s]/g, ''));
+          const uniqueSenders = [...new Set(senderCandidates)];
+
+          for (const sEmail of uniqueSenders) {
+            try {
+              const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+                signal: controller.signal,
+                method: 'POST',
+                headers: {
+                  'api-key': brevoKey,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                  sender: { name: fromName, email: sEmail },
+                  to: [{ email: toEmail }],
+                  subject,
+                  htmlContent,
+                }),
+              });
+
+              const resData = await response.json().catch(() => ({}));
+              if (response.ok && (resData.messageId || resData.messageIds)) {
+                clearTimeout(tId);
+                logger.info(`⚡ Instant Email OTP delivered to ${toEmail} via Brevo HTTPS API [sender: ${sEmail}] (MessageId: ${resData.messageId})`);
+                return { success: true, messageId: resData.messageId, mode: 'brevo_https', sender: sEmail };
+              } else {
+                logger.warn(`Brevo attempt with sender ${sEmail} returned: ${JSON.stringify(resData)}`);
+              }
+            } catch (itemErr) {
+              logger.warn(`Brevo attempt with sender ${sEmail} error: ${itemErr.message}`);
+            }
+          }
+          clearTimeout(tId);
+        } catch (err) {
+          logger.error(`Brevo HTTPS API delivery error: ${err.message}`);
+        }
+      }
+
+      // 2. High-Priority for Render Free Plan: Google Apps Script HTTPS Webhook (Port 443)
       const webhookUrl = process.env.GMAIL_WEBHOOK_URL;
       if (webhookUrl) {
         try {
@@ -292,13 +360,13 @@ class BrevoMailerService {
         }
       }
 
-      // 2. High-Priority: Resend HTTPS REST API (Port 443 - Never Blocked on Render Free Tier)
+      // 3. Secondary: Resend HTTPS REST API (Port 443)
       if (process.env.RESEND_API_KEY) {
         try {
           const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+              'Authorization': `Bearer ${process.env.RESEND_API_KEY.replace(/["'\s]/g, '')}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -319,40 +387,6 @@ class BrevoMailerService {
         }
       }
 
-      // 3. Backup Relay: Brevo HTTPS REST API (Port 443 - Never Blocked on Render Free Tier)
-      if (process.env.BREVO_API_KEY) {
-        try {
-          const controller = new AbortController();
-          const tId = setTimeout(() => controller.abort(), 6000);
-          const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-            signal: controller.signal,
-            method: 'POST',
-            headers: {
-              'api-key': process.env.BREVO_API_KEY,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-              sender: { name: fromName, email: fromEmail },
-              to: [{ email: toEmail }],
-              subject,
-              htmlContent,
-            }),
-          });
-          clearTimeout(tId);
-
-          if (response.ok) {
-            const resData = await response.json().catch(() => ({}));
-            logger.info(`⚡ Email OTP delivered to ${toEmail} via Brevo HTTPS API (MessageId: ${resData.messageId || 'ok'})`);
-            return { success: true, messageId: resData.messageId, mode: 'brevo_https' };
-          }
-          const errData = await response.json().catch(() => ({}));
-          logger.warn(`Brevo API returned error: ${JSON.stringify(errData)}`);
-        } catch (err) {
-          logger.warn(`Brevo backup API error: ${err.message}`);
-        }
-      }
-
       // 4. Standard SMTP Transporter (Works on paid tiers, local dev, or hosts with open SMTP ports)
       if (this.transporter) {
         try {
@@ -369,7 +403,7 @@ class BrevoMailerService {
         }
       }
 
-      // 3. Development Console Mode Fallback
+      // 5. Development Console Mode Fallback
       console.log('\n╔══════════════════════════════════════════════════════════════════╗');
       console.log('║ 📧 QUICK MONEY BREVO EMAIL OTP (DEV CONSOLE MODE)                 ║');
       console.log('╠══════════════════════════════════════════════════════════════════╣');
