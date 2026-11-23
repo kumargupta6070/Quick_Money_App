@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    namespace = "io.Quick_Money"
-    compileSdk = 37
+    namespace = "io.naimify.quick_money"
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

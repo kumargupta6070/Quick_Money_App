@@ -1,7 +1,8 @@
 import React from 'react';
 import { Download, ShieldCheck, Zap, ArrowRight, CheckCircle2, Smartphone, Lock, TrendingUp, Sparkles } from 'lucide-react';
 
-export default function Hero({ release, onDownload }) {
+export default function Hero({ release, onDownload, onDownloadClick }) {
+  const handleDownload = onDownload || onDownloadClick;
   return (
     <section id="overview" className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden">
       
@@ -38,7 +39,7 @@ export default function Hero({ release, onDownload }) {
             {/* Download CTA & Badges */}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <button
-                onClick={onDownload}
+                onClick={handleDownload}
                 className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-display font-extrabold text-sm sm:text-base tracking-wide bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-slate-950 shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98] group"
               >
                 <Download className="w-5 h-5 stroke-[2.5] group-hover:-translate-y-0.5 transition-transform" />

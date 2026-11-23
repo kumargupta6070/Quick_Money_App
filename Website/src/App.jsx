@@ -49,20 +49,32 @@ export default function App() {
       // Ignored if canvas-confetti is not loaded
     }
 
-    // Direct download trigger
-    const downloadUrl = release?.downloadUrl || release?.download_url || DEFAULT_RELEASE.downloadUrl || DEFAULT_RELEASE.download_url || '/quick-money.apk';
-    if (downloadUrl) {
-      window.location.href = downloadUrl;
+    // Direct programmatic anchor download trigger
+    let finalUrl = release?.downloadUrl || release?.download_url || '/quick-money.apk';
+    if (!finalUrl || finalUrl.includes('github.com/kumargupta6070/Quick_Money_App/releases')) {
+      finalUrl = '/quick-money.apk';
     }
+
+    const anchor = document.createElement('a');
+    anchor.href = finalUrl;
+    anchor.setAttribute('download', 'quick-money.apk');
+    anchor.target = '_self';
+    document.body.appendChild(anchor);
+    anchor.click();
+    setTimeout(() => {
+      try {
+        document.body.removeChild(anchor);
+      } catch (_) {}
+    }, 1000);
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-500 selection:text-white">
       {/* Top Navigation */}
-      <Navbar release={release} onDownloadClick={triggerDownloadConfetti} />
+      <Navbar release={release} onDownload={triggerDownloadConfetti} onDownloadClick={triggerDownloadConfetti} />
 
       {/* Hero with Live Phone Mockup & Download CTA */}
-      <Hero release={release} onDownloadClick={triggerDownloadConfetti} />
+      <Hero release={release} onDownload={triggerDownloadConfetti} onDownloadClick={triggerDownloadConfetti} />
 
       {/* Live Financial Metrics */}
       <Metrics />

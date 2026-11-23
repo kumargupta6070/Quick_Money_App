@@ -33,8 +33,12 @@ export async function fetchLatestRelease() {
       const data = await res.json();
       if (data && data.success && data.data) {
         const merged = { ...DEFAULT_RELEASE, ...data.data };
-        merged.downloadUrl = merged.download_url || merged.downloadUrl || '/quick-money.apk';
-        merged.fileSize = merged.file_size || merged.fileSize || '62.2 MB';
+        // Protect against any broken github placeholder URLs
+        if (!merged.download_url || merged.download_url.includes('github.com/kumargupta6070/Quick_Money_App/releases')) {
+          merged.download_url = '/quick-money.apk';
+        }
+        merged.downloadUrl = merged.download_url;
+        merged.fileSize = merged.file_size || merged.fileSize || '65.9 MB';
         return merged;
       }
     }

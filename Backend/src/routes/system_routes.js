@@ -29,6 +29,9 @@ router.get('/app-release', async (req, res) => {
       return ResponseHandler.success(res, DEFAULT_RELEASE, 'Default app release metadata');
     }
     const parsed = JSON.parse(setting.value);
+    if (!parsed.download_url || parsed.download_url.includes('github.com/kumargupta6070/Quick_Money_App/releases')) {
+      parsed.download_url = 'https://quick-moneey.netlify.app/quick-money.apk';
+    }
     return ResponseHandler.success(res, parsed, 'Latest APK release metadata');
   } catch (error) {
     return ResponseHandler.success(res, DEFAULT_RELEASE, 'Fallback release metadata');

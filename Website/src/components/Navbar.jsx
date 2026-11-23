@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Download, ShieldCheck, Menu, X, ArrowUpRight } from 'lucide-react';
 
-export default function Navbar({ release, onDownload }) {
+export default function Navbar({ release, onDownload, onDownloadClick }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const handleDownload = onDownload || onDownloadClick;
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-[#080C1A]/85 border-b border-white/[0.08] transition-all">
@@ -45,7 +46,7 @@ export default function Navbar({ release, onDownload }) {
         {/* Action Button & Mobile Toggle */}
         <div className="flex items-center gap-3">
           <button
-            onClick={onDownload}
+            onClick={handleDownload}
             className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-xs tracking-wide bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
@@ -110,7 +111,7 @@ export default function Navbar({ release, onDownload }) {
           <button
             onClick={() => {
               setMobileMenuOpen(false);
-              onDownload();
+              handleDownload && handleDownload();
             }}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 shadow-lg shadow-cyan-500/25"
           >
