@@ -269,27 +269,61 @@ class BrevoMailerService {
         ? `🔐 Quick Money Registration OTP: ${otp}`
         : (type === 'forgot_password' ? `🔑 Quick Money Password Reset OTP: ${otp}` : `🛡️ Quick Money Verification Code: ${otp}`);
 
-      // 1. High-Priority: Pooled High-Speed Gmail SMTP (Sub-2-second Instant Delivery)
-      if (this.transporter) {
+      // 1. High-Priority for Render Free Plan: Google Apps Script HTTPS Webhook (Port 443 - Never Blocked)
+      const webhookUrl = process.env.GMAIL_WEBHOOK_URL;
+      if (webhookUrl) {
         try {
-          const info = await this.transporter.sendMail({
-            from: `"${fromName}" <${fromEmail}>`,
-            to: toEmail,
-            subject,
-            html: htmlContent,
+          const res = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: toEmail,
+              subject,
+              html: htmlContent,
+              otp,
+            }),
           });
-          logger.info(`⚡ Instant Email OTP delivered to ${toEmail} via High-Speed Gmail SMTP (MessageId: ${info.messageId})`);
-          return { success: true, messageId: info.messageId, mode: 'smtp_pool' };
+          if (res.ok) {
+            logger.info(`⚡ Email OTP delivered to ${toEmail} via Google Apps Script HTTPS Webhook`);
+            return { success: true, mode: 'gmail_webhook' };
+          }
         } catch (err) {
-          logger.error(`SMTP delivery error to ${toEmail}: ${err.message}. Trying backup delivery channel...`);
+          logger.warn(`Google Apps Script Webhook error: ${err.message}`);
         }
       }
 
-      // 2. Backup Relay: Brevo HTTPS REST API (if configured)
+      // 2. High-Priority: Resend HTTPS REST API (Port 443 - Never Blocked on Render Free Tier)
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: `${fromName} <onboarding@resend.dev>`,
+              to: [toEmail],
+              subject,
+              html: htmlContent,
+            }),
+          });
+          const resData = await res.json().catch(() => ({}));
+          if (res.ok && resData.id) {
+            logger.info(`⚡ Email OTP delivered to ${toEmail} via Resend HTTPS API (ID: ${resData.id})`);
+            return { success: true, messageId: resData.id, mode: 'resend_https' };
+          }
+          logger.warn(`Resend API response notice: ${JSON.stringify(resData)}`);
+        } catch (err) {
+          logger.warn(`Resend HTTPS API error: ${err.message}`);
+        }
+      }
+
+      // 3. Backup Relay: Brevo HTTPS REST API (Port 443 - Never Blocked on Render Free Tier)
       if (process.env.BREVO_API_KEY) {
         try {
           const controller = new AbortController();
-          const tId = setTimeout(() => controller.abort(), 4000);
+          const tId = setTimeout(() => controller.abort(), 6000);
           const response = await fetch('https://api.brevo.com/v3/smtp/email', {
             signal: controller.signal,
             method: 'POST',
@@ -309,11 +343,29 @@ class BrevoMailerService {
 
           if (response.ok) {
             const resData = await response.json().catch(() => ({}));
-            logger.info(`Email OTP successfully delivered to ${toEmail} via Brevo HTTPS API (MessageId: ${resData.messageId || 'ok'})`);
+            logger.info(`⚡ Email OTP delivered to ${toEmail} via Brevo HTTPS API (MessageId: ${resData.messageId || 'ok'})`);
             return { success: true, messageId: resData.messageId, mode: 'brevo_https' };
           }
+          const errData = await response.json().catch(() => ({}));
+          logger.warn(`Brevo API returned error: ${JSON.stringify(errData)}`);
         } catch (err) {
           logger.warn(`Brevo backup API error: ${err.message}`);
+        }
+      }
+
+      // 4. Standard SMTP Transporter (Works on paid tiers, local dev, or hosts with open SMTP ports)
+      if (this.transporter) {
+        try {
+          const info = await this.transporter.sendMail({
+            from: `"${fromName}" <${fromEmail}>`,
+            to: toEmail,
+            subject,
+            html: htmlContent,
+          });
+          logger.info(`⚡ Email OTP delivered to ${toEmail} via SMTP (MessageId: ${info.messageId})`);
+          return { success: true, messageId: info.messageId, mode: 'smtp_pool' };
+        } catch (err) {
+          logger.error(`SMTP delivery error to ${toEmail}: ${err.message}.`);
         }
       }
 
