@@ -33,13 +33,13 @@ class _AdminApkUploadCardState extends ConsumerState<AdminApkUploadCard> {
 
   Future<void> _pickAndUploadApk() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['apk'],
       );
 
-      if (result == null || result.files.isEmpty) return;
-      final file = result.files.first;
+      if (files.isEmpty) return;
+      final file = files.first;
       final path = file.path;
 
       if (path == null) {

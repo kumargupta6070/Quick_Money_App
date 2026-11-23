@@ -93,11 +93,6 @@ class AuthNotifier extends Notifier<AuthState> {
       return false;
     }
   }
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: _extractError(e));
-      return false;
-    }
-  }
 
   /// Register user with verified Email OTP
   Future<bool> register({
