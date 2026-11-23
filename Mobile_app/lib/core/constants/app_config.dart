@@ -10,11 +10,11 @@ enum Environment {
 
 class AppConfig {
   /// Active Environment: Switch to Environment.prod when connecting to live Render deployment
-  static Environment environment = Environment.dev;
+  static Environment environment = Environment.prod;
 
   static const String appName = 'Quick Money';
   static const String appVersion = '1.0.0';
-  static const String officialWebsiteUrl = 'https://quickmoney.netlify.app';
+  static const String officialWebsiteUrl = 'https://quick-moneey.netlify.app';
 
   /// Physical Device Wi-Fi IP (Check ipconfig, e.g. '192.168.1.10')
   static const String localWifiIp = '192.168.1.10';

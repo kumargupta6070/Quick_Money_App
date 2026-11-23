@@ -204,7 +204,7 @@ class ProfileServicesMenu extends StatelessWidget {
             icon: LucideIcons.globe,
             iconColors: const [Color(0xFF0284C7), Color(0xFF00E5FF)],
             title: 'Official Website',
-            subtitle: 'Open quickmoney.netlify.app in browser',
+            subtitle: 'Open quick-moneey.netlify.app in browser',
             badgeText: 'Netlify Live',
             badgeGradient: const [Color(0xFF0284C7), Color(0xFF00E5FF)],
             tileBgColors: isDark

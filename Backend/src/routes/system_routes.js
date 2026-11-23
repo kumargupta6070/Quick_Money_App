@@ -7,11 +7,11 @@ const ResponseHandler = require('../utils/response_handler');
 const DEFAULT_RELEASE = {
   version: '1.0.0',
   version_code: 1,
-  download_url: 'https://github.com/kumargupta6070/Quick_Money_App/releases/download/v1.0.0/quick-money-v1.0.0.apk',
-  file_size: '28.4 MB',
+  download_url: 'https://quick-moneey.netlify.app/quick-money.apk',
+  file_size: '65.9 MB',
   release_notes: 'Official Public Release with PhonePe Auto-Return, Real Email OTP & AES-256 Vault',
   is_active: true,
-  sha256: '8a6bce1846f255b88885876928d79e6ecfcdafde46073fec59b87f7d2ece7801',
+  sha256: 'f0ba78708848f62771f9fe367b735c2451a6932bc0734b4c809667134124eaac',
   updated_at: new Date().toISOString(),
 };
 

@@ -2,10 +2,12 @@
 export const DEFAULT_RELEASE = {
   version: '1.0.0',
   version_code: 1,
-  download_url: 'https://github.com/kumargupta6070/Quick_Money_App/releases/download/v1.0.0/quick-money-v1.0.0.apk',
-  file_size: '28.4 MB',
+  download_url: '/quick-money.apk',
+  downloadUrl: '/quick-money.apk',
+  file_size: '65.9 MB',
+  fileSize: '65.9 MB',
   release_notes: 'Official Public Release with PhonePe Auto-Return, Real Email OTP & AES-256 Vault',
-  sha256: '8a6bce1846f255b88885876928d79e6ecfcdafde46073fec59b87f7d2ece7801',
+  sha256: 'f0ba78708848f62771f9fe367b735c2451a6932bc0734b4c809667134124eaac',
   is_active: true,
   updated_at: '2026-11-23',
 };
@@ -30,7 +32,10 @@ export async function fetchLatestRelease() {
     if (res.ok) {
       const data = await res.json();
       if (data && data.success && data.data) {
-        return { ...DEFAULT_RELEASE, ...data.data };
+        const merged = { ...DEFAULT_RELEASE, ...data.data };
+        merged.downloadUrl = merged.download_url || merged.downloadUrl || '/quick-money.apk';
+        merged.fileSize = merged.file_size || merged.fileSize || '62.2 MB';
+        return merged;
       }
     }
     return DEFAULT_RELEASE;

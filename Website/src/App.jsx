@@ -50,7 +50,7 @@ export default function App() {
     }
 
     // Direct download trigger
-    const downloadUrl = release?.downloadUrl || DEFAULT_RELEASE.downloadUrl;
+    const downloadUrl = release?.downloadUrl || release?.download_url || DEFAULT_RELEASE.downloadUrl || DEFAULT_RELEASE.download_url || '/quick-money.apk';
     if (downloadUrl) {
       window.location.href = downloadUrl;
     }

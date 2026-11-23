@@ -39,7 +39,7 @@ class _AdminApkReleaseDialogState extends ConsumerState<AdminApkReleaseDialog> {
     final release = ref.read(adminReleaseProvider);
     _versionCtrl = TextEditingController(text: release.version);
     _urlCtrl = TextEditingController(text: release.downloadUrl.isEmpty
-        ? 'https://github.com/kumargupta6070/Quick_Money_App/releases/download/v1.0.0/quick-money-release.apk'
+        ? 'https://quick-moneey.netlify.app/quick-money.apk'
         : release.downloadUrl);
     _sizeCtrl = TextEditingController(text: release.fileSize);
     _notesCtrl = TextEditingController(text: release.releaseNotes.isEmpty
@@ -207,7 +207,7 @@ class _AdminApkReleaseDialogState extends ConsumerState<AdminApkReleaseDialog> {
                                 ),
                               ),
                               Text(
-                                'Real-time sync with quickmoney.netlify.app',
+                                'Real-time sync with quick-moneey.netlify.app',
                                 style: GoogleFonts.inter(
                                   fontSize: 11.5,
                                   color: const Color(0xFF10B981),

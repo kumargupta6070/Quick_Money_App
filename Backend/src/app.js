@@ -1,5 +1,6 @@
 const express = require('express');
 require('dns').setDefaultResultOrder('ipv4first');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -45,6 +46,27 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use('/api/', apiLimiter);
 app.use(encryptionMiddleware);
+
+// Static file serving for downloads and public assets
+app.get('/downloads/quick-money.apk', (req, res) => {
+  return res.redirect('https://quick-moneey.netlify.app/quick-money.apk');
+});
+app.use('/downloads', express.static(path.join(__dirname, '../public/downloads')));
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Root / Health Entrypoint for Render and Browser Visitors
+app.get('/', (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: 'Quick Money FinTech API Engine is Running',
+    version: '1.0.0',
+    documentation: '/api-docs',
+    health: '/api/health',
+    website: 'https://quick-moneey.netlify.app',
+    status: 'ONLINE',
+  });
+});
+app.head('/', (req, res) => res.status(200).end());
 
 // Swagger Interactive API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

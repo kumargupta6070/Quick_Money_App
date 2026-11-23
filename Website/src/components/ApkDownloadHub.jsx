@@ -5,7 +5,9 @@ export default function ApkDownloadHub({ release, onDownloadClick }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(release?.downloadUrl || window.location.href);
+    const raw = release?.downloadUrl || release?.download_url || '/quick-money.apk';
+    const full = raw.startsWith('http') ? raw : `${window.location.origin}${raw.startsWith('/') ? '' : '/'}${raw}`;
+    navigator.clipboard.writeText(full);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -81,7 +83,7 @@ export default function ApkDownloadHub({ release, onDownloadClick }) {
                   <div className="text-xs text-slate-400 mb-1 flex items-center justify-center gap-1">
                     <HardDrive className="w-3.5 h-3.5" /> File Size
                   </div>
-                  <div className="text-sm font-bold text-white">{release?.fileSize || '28.4 MB'}</div>
+                  <div className="text-sm font-bold text-white">{release?.fileSize || release?.file_size || '65.9 MB'}</div>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-white/5 border border-white/5 text-center">
                   <div className="text-xs text-slate-400 mb-1 flex items-center justify-center gap-1">
