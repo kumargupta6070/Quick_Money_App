@@ -77,6 +77,8 @@ class ApiEndpoints {
   static const String adminApproveOrder = '/admin/orders/approve';
   static const String adminRejectOrder = '/admin/orders/reject';
   static const String adminTriggerYieldCycle = '/admin/yields/trigger-cycle';
+  static const String adminAppRelease = '/admin/app-release';
+  static const String systemAppRelease = '/system/app-release';
 
   // 11. Real PhonePe Payment Gateway (Dual-Mode: Sandbox / Production)
   static const String phonePeInitiate = '/payments/phonepe/initiate';

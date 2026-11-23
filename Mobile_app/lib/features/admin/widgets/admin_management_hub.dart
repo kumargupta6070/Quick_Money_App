@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
+import 'admin_apk_release_dialog.dart';
 import 'admin_utr_approval_sheet.dart';
 
 /// Quick Action Management Hub (4 Big Administrative Control Suites)
@@ -219,6 +220,16 @@ class AdminManagementHub extends ConsumerWidget {
           icon: LucideIcons.headset,
           iconColors: const [Color(0xFF8B5CF6), Color(0xFFC084FC)],
           onTap: () => context.push('/admin/helpdesk'),
+          isDark: isDark,
+        ),
+        const SizedBox(height: 10),
+        _buildActionTile(
+          title: 'Website APK Hub & Releases',
+          subtitle: 'Update APK version, direct download URL & release notes live',
+          badgeText: 'Live Web Hub',
+          icon: LucideIcons.uploadCloud,
+          iconColors: const [Color(0xFF0284C7), Color(0xFF10B981)],
+          onTap: () => AdminApkReleaseDialog.show(context),
           isDark: isDark,
         ),
         const SizedBox(height: 10),

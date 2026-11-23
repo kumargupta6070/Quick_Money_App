@@ -14,6 +14,7 @@ class AppConfig {
 
   static const String appName = 'Quick Money';
   static const String appVersion = '1.0.0';
+  static const String officialWebsiteUrl = 'https://quickmoney.netlify.app';
 
   /// Physical Device Wi-Fi IP (Check ipconfig, e.g. '192.168.1.10')
   static const String localWifiIp = '192.168.1.10';

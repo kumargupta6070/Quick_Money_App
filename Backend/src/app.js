@@ -27,6 +27,7 @@ const notificationRoutes = require('./routes/notification_routes');
 const rewardRoutes = require('./routes/reward_routes');
 const adminRoutes = require('./routes/admin_routes');
 const paymentRoutes = require('./routes/payment_routes');
+const systemRoutes = require('./routes/system_routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -74,6 +75,7 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/rewards', rewardRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/system', systemRoutes);
 
 // 404 Handler
 app.use((req, res) => {

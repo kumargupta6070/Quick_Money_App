@@ -974,6 +974,93 @@ class AdminController {
       return ResponseHandler.error(res, err.message, 500);
     }
   }
+
+  /**
+   * 13. Dynamic APK Release Management for Website
+   */
+  static async getAppRelease(req, res) {
+    try {
+      const setting = await SystemSetting.findOne({ where: { key: 'app_apk_release' } });
+      const defaultRelease = {
+        version: '1.0.0',
+        version_code: 1,
+        download_url: 'https://github.com/kumargupta6070/Quick_Money_App/releases/download/v1.0.0/quick-money-v1.0.0.apk',
+        file_size: '28.4 MB',
+        release_notes: 'Official Public Release with PhonePe Auto-Return, Real Email OTP & AES-256 Vault',
+        is_active: true,
+        sha256: '8a6bce1846f255b88885876928d79e6ecfcdafde46073fec59b87f7d2ece7801',
+        updated_at: new Date().toISOString(),
+      };
+      const release = setting ? JSON.parse(setting.value) : defaultRelease;
+      return ResponseHandler.success(res, release, 'Active APK release metadata');
+    } catch (err) {
+      return ResponseHandler.error(res, err.message, 500);
+    }
+  }
+
+  static async updateAppRelease(req, res) {
+    try {
+      const { version, version_code, download_url, file_size, release_notes, is_active, sha256 } = req.body;
+      if (!version || !download_url) {
+        return ResponseHandler.error(res, 'Version and download URL are required', 400);
+      }
+      const releaseData = {
+        version: String(version).trim(),
+        version_code: parseInt(version_code || 1, 10),
+        download_url: String(download_url).trim(),
+        file_size: file_size ? String(file_size).trim() : '28.4 MB',
+        release_notes: release_notes ? String(release_notes).trim() : 'Latest Android APK release',
+        is_active: is_active !== false,
+        sha256: sha256 ? String(sha256).trim() : '',
+        updated_at: new Date().toISOString(),
+      };
+
+      await SystemSetting.upsert({
+        key: 'app_apk_release',
+        value: JSON.stringify(releaseData),
+        description: 'Active Mobile App APK Download Configuration for Landing Page Website',
+      });
+
+      // Audit Log
+      await AuditLog.create({
+        admin_id: req.user.id,
+        action: 'UPDATE_APP_RELEASE',
+        target_type: 'SystemSetting',
+        target_id: 0,
+        details: JSON.stringify(releaseData),
+        ip_address: req.ip,
+      });
+
+      return ResponseHandler.success(res, releaseData, 'APK release published to landing page successfully');
+    } catch (err) {
+      return ResponseHandler.error(res, err.message, 500);
+    }
+  }
+
+  static async deleteAppRelease(req, res) {
+    try {
+      const setting = await SystemSetting.findOne({ where: { key: 'app_apk_release' } });
+      if (setting) {
+        const parsed = JSON.parse(setting.value);
+        parsed.is_active = false;
+        parsed.updated_at = new Date().toISOString();
+        await setting.update({ value: JSON.stringify(parsed) });
+      }
+
+      await AuditLog.create({
+        admin_id: req.user.id,
+        action: 'DEACTIVATE_APP_RELEASE',
+        target_type: 'SystemSetting',
+        target_id: 0,
+        details: 'Admin deactivated APK download release from website',
+        ip_address: req.ip,
+      });
+
+      return ResponseHandler.success(res, null, 'APK release disabled on landing page');
+    } catch (err) {
+      return ResponseHandler.error(res, err.message, 500);
+    }
+  }
 }
 
 module.exports = AdminController;

@@ -53,4 +53,9 @@ router.post('/broadcast', AdminController.broadcastNotification);
 // 10. Trigger Daily Trading Yield & Auto-Return Cycle
 router.post('/yields/trigger-cycle', AdminController.triggerYieldCycle);
 
+// 11. Dynamic APK Release Management for Website Landing Page
+router.get('/app-release', AdminController.getAppRelease);
+router.post('/app-release', AdminController.updateAppRelease);
+router.delete('/app-release', AdminController.deleteAppRelease);
+
 module.exports = router;
