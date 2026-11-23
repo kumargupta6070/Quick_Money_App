@@ -1,4 +1,4 @@
-package io.quick_money
+package io.naimify.quick_money
 
 import io.flutter.embedding.android.FlutterActivity
 
