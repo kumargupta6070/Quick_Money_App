@@ -48,11 +48,17 @@ class AdminConfirmDeleteDialog extends ConsumerWidget {
     HapticFeedback.heavyImpact();
     CustomLoader.show(context, message: 'Wiping user record and cascading assets...');
 
-    final success =
-        await ref.read(adminProvider.notifier).deleteUserPermanently(userId);
+    bool success = false;
+    try {
+      success =
+          await ref.read(adminProvider.notifier).deleteUserPermanently(userId);
+    } catch (_) {
+      success = false;
+    } finally {
+      CustomLoader.hide(context);
+    }
 
     if (!context.mounted) return;
-    CustomLoader.hide(context);
 
     if (success) {
       Navigator.pop(context, true);

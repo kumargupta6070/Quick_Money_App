@@ -164,18 +164,10 @@ class AdminPayoutCard extends ConsumerWidget {
                       onPressed: () => Navigator.pop(ctx),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                        ),
+                        side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: Text(
-                        'Cancel',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
+                      child: Text('Cancel', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w700, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -199,13 +191,24 @@ class AdminPayoutCard extends ConsumerWidget {
                         onPressed: () async {
                           Navigator.pop(ctx);
                           CustomLoader.show(context, message: 'Rejecting payout & refunding wallet...');
-                          final ok = await ref.read(adminProvider.notifier).rejectPayout(payout.id);
+                          bool ok = false;
+                          try {
+                            ok = await ref.read(adminProvider.notifier).rejectPayout(payout.id);
+                          } catch (_) {
+                            ok = false;
+                          } finally {
+                            if (context.mounted) CustomLoader.hide(context);
+                          }
                           if (context.mounted) {
-                            CustomLoader.hide(context);
                             if (ok) {
                               CustomSnackBar.showTopWarning(
                                 context: context,
                                 message: 'Payout rejected. Amount refunded to user wallet.',
+                              );
+                            } else {
+                              CustomSnackBar.showTopError(
+                                context: context,
+                                message: 'Failed to reject payout.',
                               );
                             }
                           }

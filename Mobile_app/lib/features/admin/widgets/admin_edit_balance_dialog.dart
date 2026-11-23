@@ -177,19 +177,25 @@ class _AdminEditBalanceDialogState extends ConsumerState<AdminEditBalanceDialog>
   }
 
   Future<void> _executeAdjustment(double entered, double newBalance) async {
-    Navigator.pop(context); // Pop main dialog
     CustomLoader.show(context, message: 'Adjusting balance ledger in live vault...');
 
-    final ok = await ref.read(adminProvider.notifier).adjustUserBalance(
-          userId: widget.user.id,
-          amount: entered,
-          type: _isCredit ? 'credit' : 'debit',
-          reason: 'SuperAdmin Manual Adjustment',
-        );
+    bool ok = false;
+    try {
+      ok = await ref.read(adminProvider.notifier).adjustUserBalance(
+            userId: widget.user.id,
+            amount: entered,
+            type: _isCredit ? 'credit' : 'debit',
+            reason: 'SuperAdmin Manual Adjustment',
+          );
+    } catch (_) {
+      ok = false;
+    } finally {
+      CustomLoader.hide(context);
+    }
 
     if (mounted) {
-      CustomLoader.hide(context);
       if (ok) {
+        Navigator.pop(context); // Pop main dialog safely after loader hides
         HapticFeedback.mediumImpact();
         CustomSnackBar.showTopSuccess(
           context: context,

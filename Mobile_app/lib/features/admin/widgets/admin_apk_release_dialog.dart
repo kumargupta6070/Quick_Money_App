@@ -77,14 +77,14 @@ class _AdminApkReleaseDialogState extends ConsumerState<AdminApkReleaseDialog> {
     CustomLoader.hide(context);
 
     if (success) {
-      Navigator.of(context).pop();
-      CustomSnackbar.showSuccess(
-        context,
-        'Live APK Release v${_versionCtrl.text.trim()} synced with website!',
+      Navigator.of(context, rootNavigator: true).pop();
+      CustomSnackBar.showTopSuccess(
+        context: context,
+        message: 'Live APK Release v${_versionCtrl.text.trim()} synced with website!',
       );
     } else {
       final err = ref.read(adminReleaseProvider).errorMessage ?? 'Deployment failed';
-      CustomSnackbar.showError(context, err);
+      CustomSnackBar.showTopError(context: context, message: err);
     }
   }
 
@@ -128,7 +128,10 @@ class _AdminApkReleaseDialogState extends ConsumerState<AdminApkReleaseDialog> {
 
     if (success) {
       Navigator.of(context).pop();
-      CustomSnackbar.showSuccess(context, 'APK release removed from website.');
+      CustomSnackBar.showTopSuccess(
+        context: context,
+        message: 'APK release removed from website.',
+      );
     }
   }
 

@@ -78,15 +78,21 @@ class _AdminChangePasswordDialogState
     HapticFeedback.mediumImpact();
     CustomLoader.show(context, message: 'Updating Super Admin Security Vault...');
 
-    final success = await ref
-        .read(authProvider.notifier)
-        .changePassword(oldPassword: oldPass, newPassword: newPass);
+    bool success = false;
+    try {
+      success = await ref
+          .read(authProvider.notifier)
+          .changePassword(oldPassword: oldPass, newPassword: newPass);
+    } catch (_) {
+      success = false;
+    } finally {
+      CustomLoader.hide(context);
+    }
 
     if (!mounted) return;
-    CustomLoader.hide(context);
 
     if (success) {
-      Navigator.pop(context);
+      Navigator.of(context, rootNavigator: true).pop();
       CustomSnackBar.showTopSuccess(
         context: context,
         message: 'Super Admin password updated successfully!',

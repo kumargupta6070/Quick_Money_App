@@ -49,20 +49,26 @@ class _AdminBroadcastDialogState extends ConsumerState<AdminBroadcastDialog> {
     final title = _titleCtrl.text.trim();
     final message = _messageCtrl.text.trim();
 
-    Navigator.pop(context);
     CustomLoader.show(
       context,
       message: 'Broadcasting flash announcement to all traders...',
     );
 
-    final ok = await ref.read(adminProvider.notifier).broadcastAnnouncement(
-          title: title,
-          message: message,
-        );
+    bool ok = false;
+    try {
+      ok = await ref.read(adminProvider.notifier).broadcastAnnouncement(
+            title: title,
+            message: message,
+          );
+    } catch (_) {
+      ok = false;
+    } finally {
+      CustomLoader.hide(context);
+    }
 
     if (mounted) {
-      CustomLoader.hide(context);
       if (ok) {
+        Navigator.of(context, rootNavigator: true).pop();
         HapticFeedback.mediumImpact();
         ref.read(notificationProvider.notifier).fetchNotifications();
         CustomSnackBar.showTopSuccess(

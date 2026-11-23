@@ -44,17 +44,23 @@ class _AdminSettleDialogState extends ConsumerState<AdminSettleDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final utr = _utrController.text.trim();
-    Navigator.pop(context);
-
     CustomLoader.show(context, message: 'Settling payout with NPCI/Bank Gateway...');
-    final ok = await ref.read(adminProvider.notifier).settlePayout(
-          widget.payout.id,
-          utr,
-        );
+
+    bool ok = false;
+    try {
+      ok = await ref.read(adminProvider.notifier).settlePayout(
+            widget.payout.id,
+            utr,
+          );
+    } catch (_) {
+      ok = false;
+    } finally {
+      CustomLoader.hide(context);
+    }
 
     if (mounted) {
-      CustomLoader.hide(context);
       if (ok) {
+        Navigator.of(context, rootNavigator: true).pop();
         HapticFeedback.mediumImpact();
         CustomSnackBar.showTopSuccess(
           context: context,

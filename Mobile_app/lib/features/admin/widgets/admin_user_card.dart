@@ -143,13 +143,21 @@ class AdminUserCard extends ConsumerWidget {
     final actionName = newStatus == 'active' ? 'Unfreezing' : 'Freezing';
 
     CustomLoader.show(context, message: '$actionName user account...');
-    final ok = await ref.read(adminProvider.notifier).updateUserStatus(
-          user.id,
-          newStatus,
-        );
+    bool ok = false;
+    try {
+      ok = await ref.read(adminProvider.notifier).updateUserStatus(
+            user.id,
+            newStatus,
+          );
+    } catch (_) {
+      ok = false;
+    } finally {
+      if (context.mounted) {
+        CustomLoader.hide(context);
+      }
+    }
 
     if (context.mounted) {
-      CustomLoader.hide(context);
       if (ok) {
         HapticFeedback.mediumImpact();
         CustomSnackBar.showTopSuccess(

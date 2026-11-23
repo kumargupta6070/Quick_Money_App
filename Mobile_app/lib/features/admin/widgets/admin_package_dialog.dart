@@ -96,6 +96,7 @@ class _AdminPackageDialogState extends ConsumerState<AdminPackageDialog> {
 
     if (mounted) {
       if (ok) {
+        Navigator.of(context, rootNavigator: true).pop();
         HapticFeedback.mediumImpact();
         CustomSnackBar.showTopSuccess(
           context: context,
@@ -104,7 +105,6 @@ class _AdminPackageDialogState extends ConsumerState<AdminPackageDialog> {
               : 'New RP Package created and deployed!',
           icon: LucideIcons.packageCheck,
         );
-        Navigator.of(context).pop();
       } else {
         CustomSnackBar.showTopError(
           context: context,

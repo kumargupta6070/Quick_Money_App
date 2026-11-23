@@ -429,3 +429,5 @@ class CustomSnackBar {
     );
   }
 }
+
+typedef CustomSnackbar = CustomSnackBar;
