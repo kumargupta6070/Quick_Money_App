@@ -5,6 +5,24 @@ import '../network/api_endpoints.dart';
 import '../network/api_exception.dart';
 import '../services/secure_storage_service.dart';
 
+class LoginResponse {
+  final bool success;
+  final bool requiresOtp;
+  final String? email;
+  final String? mobile;
+  final String? message;
+  final String? error;
+
+  const LoginResponse({
+    required this.success,
+    this.requiresOtp = false,
+    this.email,
+    this.mobile,
+    this.message,
+    this.error,
+  });
+}
+
 class AuthState {
   final bool isAuthenticated;
   final bool isLoading;
@@ -234,8 +252,8 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  /// Authenticate with Mobile/Email & Password
-  Future<bool> login({
+  /// Authenticate with Mobile/Email & Password (Step 1: Credentials -> Dispatches Email OTP)
+  Future<LoginResponse> login({
     required String mobile,
     String? email,
     required String password,
@@ -243,16 +261,15 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       if (ApiEndpoints.useMockData) {
-        await Future.delayed(const Duration(milliseconds: 800));
-        await _storage.saveTokens(accessToken: 'mock_jwt_token_2026');
-        state = state.copyWith(
-          isAuthenticated: true,
-          isLoading: false,
-          token: 'mock_jwt_token_2026',
+        await Future.delayed(const Duration(milliseconds: 600));
+        state = state.copyWith(isLoading: false);
+        return LoginResponse(
+          success: true,
+          requiresOtp: true,
+          email: email ?? 'investor@quickmoney.in',
           mobile: mobile,
-          email: email,
+          message: 'Security code dispatched to your registered email address.',
         );
-        return true;
       }
 
       final payload = <String, dynamic>{
@@ -265,6 +282,78 @@ class AuthNotifier extends Notifier<AuthState> {
 
       final res = await _apiClient.post(ApiEndpoints.login, data: payload);
 
+      state = state.copyWith(isLoading: false);
+      if (res.success && res.data != null) {
+        final data = res.data as Map<String, dynamic>;
+        final requiresOtp = data['requiresOtp'] == true;
+        final targetEmail = data['email']?.toString() ?? email;
+        final targetMobile = data['mobile']?.toString() ?? mobile;
+
+        if (data['token'] != null) {
+          final token = data['token'] as String;
+          final user = data['user'] as Map<String, dynamic>? ?? {};
+          await _storage.saveTokens(accessToken: token);
+          state = state.copyWith(
+            isAuthenticated: true,
+            token: token,
+            mobile: user['mobile']?.toString() ?? mobile,
+            email: user['email']?.toString() ?? email,
+            inviteCode: user['invite_code']?.toString(),
+            balance: double.tryParse(user['balance']?.toString() ?? '0') ?? 0.0,
+            level: user['level']?.toString() ?? 'L1',
+            role: user['role']?.toString() ?? 'user',
+          );
+        }
+
+        return LoginResponse(
+          success: true,
+          requiresOtp: requiresOtp,
+          email: targetEmail,
+          mobile: targetMobile,
+          message: res.message,
+        );
+      } else {
+        state = state.copyWith(error: res.message);
+        return LoginResponse(
+          success: false,
+          error: res.message,
+        );
+      }
+    } catch (e) {
+      final err = _extractError(e);
+      state = state.copyWith(isLoading: false, error: err);
+      return LoginResponse(success: false, error: err);
+    }
+  }
+
+  /// Step 2: Verify Login OTP and issue authenticated session
+  Future<bool> verifyLoginOtp({
+    required String email,
+    required String otp,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      if (ApiEndpoints.useMockData) {
+        await Future.delayed(const Duration(milliseconds: 600));
+        await _storage.saveTokens(accessToken: 'mock_jwt_token_2026');
+        state = state.copyWith(
+          isAuthenticated: true,
+          isLoading: false,
+          token: 'mock_jwt_token_2026',
+          email: email,
+          role: email.contains('admin') ? 'admin' : 'user',
+        );
+        return true;
+      }
+
+      final res = await _apiClient.post(
+        ApiEndpoints.loginVerifyOtp,
+        data: {
+          'email': email.trim().toLowerCase(),
+          'otp': otp.trim(),
+        },
+      );
+
       if (res.success && res.data != null) {
         final data = res.data as Map<String, dynamic>;
         final token = data['token'] as String? ?? '';
@@ -276,11 +365,10 @@ class AuthNotifier extends Notifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
           token: token,
-          mobile: user['mobile']?.toString() ?? mobile,
+          mobile: user['mobile']?.toString() ?? state.mobile,
           email: user['email']?.toString() ?? email,
           inviteCode: user['invite_code']?.toString(),
-          balance:
-          double.tryParse(user['balance']?.toString() ?? '0') ?? 0.0,
+          balance: double.tryParse(user['balance']?.toString() ?? '0') ?? 0.0,
           level: user['level']?.toString() ?? 'L1',
           role: user['role']?.toString() ?? 'user',
         );
@@ -289,6 +377,35 @@ class AuthNotifier extends Notifier<AuthState> {
         state = state.copyWith(isLoading: false, error: res.message);
         return false;
       }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _extractError(e));
+      return false;
+    }
+  }
+
+  /// Resend login OTP to email
+  Future<bool> sendLoginOtp(String email) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      if (ApiEndpoints.useMockData) {
+        await Future.delayed(const Duration(milliseconds: 600));
+        state = state.copyWith(isLoading: false);
+        return true;
+      }
+
+      final res = await _apiClient.post(
+        ApiEndpoints.sendOtp,
+        data: {
+          'email': email.trim().toLowerCase(),
+          'type': 'login',
+        },
+      );
+
+      state = state.copyWith(isLoading: false);
+      if (!res.success) {
+        state = state.copyWith(error: res.message);
+      }
+      return res.success;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractError(e));
       return false;
@@ -329,20 +446,17 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final res = await _apiClient.get(ApiEndpoints.me);
       if (res.success && res.data != null) {
-        final user = res.data as Map<String, dynamic>;
+        final u = res.data as Map<String, dynamic>;
         state = state.copyWith(
-          mobile: user['mobile']?.toString(),
-          email: user['email']?.toString(),
-          inviteCode: user['invite_code']?.toString(),
-          balance:
-          double.tryParse(user['balance']?.toString() ?? '0') ?? 0.0,
-          level: user['level']?.toString() ?? 'L1',
-          role: user['role']?.toString() ?? 'user',
+          mobile: u['mobile']?.toString(),
+          email: u['email']?.toString(),
+          inviteCode: u['invite_code']?.toString(),
+          balance: double.tryParse(u['balance']?.toString() ?? '0') ?? 0.0,
+          level: u['level']?.toString() ?? 'L1',
+          role: u['role']?.toString() ?? 'user',
         );
       }
-    } catch (e) {
-      // Non-blocking background sync failure
-    }
+    } catch (_) {}
   }
 
   /// Reset Password with Email OTP
@@ -353,18 +467,13 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final res = await _apiClient.post(
-        ApiEndpoints.resetPassword,
-        data: {
-          'email': email.trim().toLowerCase(),
-          'otp': otp.trim(),
-          'newPassword': newPassword,
-        },
-      );
+      final res = await _apiClient.post(ApiEndpoints.resetPassword, data: {
+        'email': email.trim().toLowerCase(),
+        'otp': otp.trim(),
+        'newPassword': newPassword,
+      });
       state = state.copyWith(isLoading: false);
-      if (!res.success) {
-        state = state.copyWith(error: res.message);
-      }
+      if (!res.success) state = state.copyWith(error: res.message);
       return res.success;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractError(e));
@@ -374,11 +483,12 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Sign out
   Future<void> logout() async {
+    try {
+      await _apiClient.post(ApiEndpoints.logout);
+    } catch (_) {}
     await _storage.clearAll();
     state = const AuthState(isAuthenticated: false, token: null);
   }
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(() {
-  return AuthNotifier();
-});
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

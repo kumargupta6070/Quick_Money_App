@@ -38,104 +38,200 @@ class AdminPayoutCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(LucideIcons.shieldAlert, color: Color(0xFFEF4444), size: 20),
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        content: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? const [Color(0xFF1E1B2E), Color(0xFF161324)]
+                  : const [Color(0xFFFFFFFF), Color(0xFFFFF5F5)],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Reject PhonePe Payout?',
-                style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                          blurRadius: 12,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(LucideIcons.shieldAlert, color: Colors.white, size: 22),
+                  ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Reject Payout',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 17,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        Text(
+                          'Refunds back to user wallet',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFFEF4444),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFEE2E2).withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'User: ${payout.userEmail}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Amount: ${CurrencyFormatter.format(payout.amount)}',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'User: ${payout.userEmail}',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
+              const SizedBox(height: 14),
+              Text(
+                'Are you sure you want to reject this PhonePe payout? The funds will be credited back to the trader immediately.',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  height: 1.4,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Are you sure you want to reject this PhonePe auto-return of ${CurrencyFormatter.format(payout.amount)}?',
-              style: GoogleFonts.inter(
-                fontSize: 12.5,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                height: 1.4,
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.pop(ctx);
+                          CustomLoader.show(context, message: 'Rejecting payout & refunding wallet...');
+                          final ok = await ref.read(adminProvider.notifier).rejectPayout(payout.id);
+                          if (context.mounted) {
+                            CustomLoader.hide(context);
+                            if (ok) {
+                              CustomSnackBar.showTopWarning(
+                                context: context,
+                                message: 'Payout rejected. Amount refunded to user wallet.',
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text(
+                          'Reject & Refund',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Note: The amount will automatically be refunded back to the user\'s wallet.',
-              style: GoogleFonts.inter(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFFF59E0B),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w700,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              CustomLoader.show(context, message: 'Rejecting payout & refunding wallet...');
-              final ok = await ref.read(adminProvider.notifier).rejectPayout(payout.id);
-              if (context.mounted) {
-                CustomLoader.hide(context);
-                if (ok) {
-                  CustomSnackBar.showTopWarning(
-                    context: context,
-                    message: 'Payout rejected. Amount refunded to user wallet.',
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(
-              'Yes, Reject & Refund',
-              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
-      ).animate().scale(begin: const Offset(0.92, 0.92), duration: 200.ms).fade(),
+        ),
+      ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack, duration: 250.ms).fade(),
     );
   }
 
@@ -145,106 +241,119 @@ class AdminPayoutCard extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const [Color(0xFF1E293B), Color(0xFF192231)]
+              : const [Colors.white, Color(0xFFFFFDF5)],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.35 : 0.25),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.15 : 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header: PhonePe branding + Amount
+          // Header: PhonePe branding + Amount (Zero overflow on all screens)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF5F259F),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF5F259F).withValues(alpha: 0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'पे',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF5F259F),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF5F259F).withValues(alpha: 0.35),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'पे',
+                          style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'PhonePe Auto-Return',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5F259F).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              'NPCI GATEWAY',
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF8B5CF6),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'PhonePe Return',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  ),
+                                ),
                               ),
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF5F259F).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: const Text(
+                                  'NPCI',
+                                  style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: Color(0xFF8B5CF6)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            maskedUpi,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        maskedUpi,
-                        style: GoogleFonts.inter(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                CurrencyFormatter.format(payout.amount),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF10B981),
+              const SizedBox(width: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  CurrencyFormatter.format(payout.amount),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF10B981),
+                  ),
                 ),
               ),
             ],

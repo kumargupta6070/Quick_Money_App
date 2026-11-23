@@ -3,11 +3,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:quick_money/core/providers/order_provider.dart';
 import 'package:quick_money/core/theme/app_colors.dart';
-import 'package:quick_money/core/utils/custom_loader.dart';
-import 'package:quick_money/core/utils/custom_snackbar.dart';
 import 'package:quick_money/shared/models/order_model.dart';
+import 'phonepe_payment_sheet.dart';
 
 class BuyRpReceiveOrderDialog extends ConsumerWidget {
   final OrderModel order;
@@ -379,36 +377,16 @@ class BuyRpReceiveOrderDialog extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () async {
+                    onPressed: () {
                       Navigator.pop(context);
-                      CustomLoader.showOverlay(
+                      PhonePePaymentSheet.show(
                         context,
-                        message:
-                            'Reserving Order & Crediting RP on Live Gateway...',
+                        order: order,
+                        isDark: isDark,
                       );
-
-                      final result = await ref
-                          .read(orderProvider.notifier)
-                          .receiveOrder(order.id);
-
-                      if (!context.mounted) return;
-                      CustomLoader.dismiss(context);
-
-                      if (result.success) {
-                        CustomSnackBar.showSuccess(
-                          context: context,
-                          message: result.message,
-                          icon: Icons.check_circle_rounded,
-                        );
-                      } else {
-                        CustomSnackBar.showError(
-                          context: context,
-                          message: result.message,
-                        );
-                      }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandPrimary,
+                      backgroundColor: const Color(0xFF5F259F),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
@@ -419,15 +397,29 @@ class BuyRpReceiveOrderDialog extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.all(3.5),
+                          decoration: const BoxDecoration(
+                            color: Colors.white24,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Text(
+                            'पे',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
                         Text(
-                          'Confirm Order',
+                          'Pay via PhonePe',
                           style: GoogleFonts.inter(
-                            fontSize: 13.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(LucideIcons.arrowRight, size: 15),
                       ],
                     ),
                   ),

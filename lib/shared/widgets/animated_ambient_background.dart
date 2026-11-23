@@ -8,16 +8,44 @@ import '../../core/theme/app_colors.dart';
 class AnimatedAmbientBackground extends StatelessWidget {
   final Widget child;
   final bool? isDark;
+  final List<Color>? lightGradientColors;
+  final List<Color>? darkGradientColors;
+  final Color? primaryOrbColor;
+  final Color? secondaryOrbColor;
+  final Color? tertiaryOrbColor;
 
   const AnimatedAmbientBackground({
     super.key,
     required this.child,
     this.isDark,
+    this.lightGradientColors,
+    this.darkGradientColors,
+    this.primaryOrbColor,
+    this.secondaryOrbColor,
+    this.tertiaryOrbColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final themeIsDark = isDark ?? (Theme.of(context).brightness == Brightness.dark);
+
+    final bgColors = themeIsDark
+        ? (darkGradientColors ??
+            const [
+              Color(0xFF070B18),
+              Color(0xFF0F1A34),
+              Color(0xFF090D1E),
+            ])
+        : (lightGradientColors ??
+            const [
+              Color(0xFFF1F5F9),
+              Color(0xFFE8EEF8),
+              Color(0xFFF8FAFC),
+            ]);
+
+    final orb1Color = primaryOrbColor ?? AppColors.brandPrimary;
+    final orb2Color = secondaryOrbColor ?? const Color(0xFF00E5FF);
+    final orb3Color = tertiaryOrbColor ?? AppColors.goldAccent;
 
     return Stack(
       children: [
@@ -27,28 +55,18 @@ class AnimatedAmbientBackground extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: themeIsDark
-                  ? const [
-                      Color(0xFF070B18),
-                      Color(0xFF0F1A34),
-                      Color(0xFF090D1E),
-                    ]
-                  : const [
-                      Color(0xFFF1F5F9),
-                      Color(0xFFE8EEF8),
-                      Color(0xFFF8FAFC),
-                    ],
+              colors: bgColors,
             ),
           ),
         ),
 
-        // 2. Animated Ambient Glowing Orb 1 (Royal Blue / Navy glow)
+        // 2. Animated Ambient Glowing Orb 1
         Positioned(
           top: -120,
           left: -70,
           child: _buildOrb(
-            color: AppColors.brandPrimary.withValues(
-              alpha: themeIsDark ? 0.35 : 0.16,
+            color: orb1Color.withValues(
+              alpha: themeIsDark ? 0.35 : 0.20,
             ),
             size: 340,
           )
@@ -65,13 +83,13 @@ class AnimatedAmbientBackground extends StatelessWidget {
               ),
         ),
 
-        // 3. Animated Ambient Glowing Orb 2 (Electric Cyan glow)
+        // 3. Animated Ambient Glowing Orb 2
         Positioned(
           top: 220,
           right: -90,
           child: _buildOrb(
-            color: const Color(0xFF00E5FF).withValues(
-              alpha: themeIsDark ? 0.22 : 0.12,
+            color: orb2Color.withValues(
+              alpha: themeIsDark ? 0.25 : 0.16,
             ),
             size: 270,
           )
@@ -88,13 +106,13 @@ class AnimatedAmbientBackground extends StatelessWidget {
               ),
         ),
 
-        // 4. Animated Ambient Glowing Orb 3 (Gold / Amber glow)
+        // 4. Animated Ambient Glowing Orb 3
         Positioned(
           bottom: -70,
           left: 40,
           child: _buildOrb(
-            color: AppColors.goldAccent.withValues(
-              alpha: themeIsDark ? 0.18 : 0.09,
+            color: orb3Color.withValues(
+              alpha: themeIsDark ? 0.20 : 0.12,
             ),
             size: 240,
           )

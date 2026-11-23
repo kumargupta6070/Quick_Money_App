@@ -366,6 +366,100 @@ class AdminNotifier extends Notifier<AdminState> {
       return false;
     }
   }
+
+  /// 14. Fetch User Full Kundali / 360 Dossier
+  Future<Map<String, dynamic>?> fetchUserKundali(int userId) async {
+    try {
+      final res = await _apiClient.get(ApiEndpoints.adminUserKundali(userId));
+      if (res.success && res.data != null) {
+        return res.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// 15. Delete User Permanently (Cascade)
+  Future<bool> deleteUserPermanently(int userId) async {
+    try {
+      final res = await _apiClient.delete(ApiEndpoints.adminUserDelete(userId));
+      if (res.success) {
+        fetchUsers();
+        fetchPlatformStats();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 16. Fetch Pending UTR Submissions
+  Future<List<Map<String, dynamic>>> fetchPendingUtrs() async {
+    try {
+      final res = await _apiClient.get(ApiEndpoints.adminPendingUtrs);
+      if (res.success && res.data is List) {
+        return (res.data as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// 17. Approve UTR Deposit
+  Future<bool> approveUtr(int orderId) async {
+    try {
+      final res = await _apiClient.post(ApiEndpoints.adminApproveUtr(orderId));
+      if (res.success) {
+        fetchPlatformStats();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 18. Reject UTR Deposit
+  Future<bool> rejectUtr(int orderId, String reason) async {
+    try {
+      final res = await _apiClient.post(
+        ApiEndpoints.adminRejectUtr(orderId),
+        data: {'reason': reason},
+      );
+      return res.success;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 19. Fetch Support Tickets
+  Future<List<Map<String, dynamic>>> fetchSupportTickets() async {
+    try {
+      final res = await _apiClient.get(ApiEndpoints.adminSupportTickets);
+      if (res.success && res.data is List) {
+        return (res.data as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// 20. Reply & Resolve Support Ticket
+  Future<bool> replySupportTicket(int ticketId, String reply, {String status = 'resolved'}) async {
+    try {
+      final res = await _apiClient.post(
+        ApiEndpoints.adminReplySupportTicket(ticketId),
+        data: {'reply': reply, 'status': status},
+      );
+      return res.success;
+    } catch (_) {
+      return false;
+    }
+  }
 }
 
 final adminProvider = NotifierProvider<AdminNotifier, AdminState>(

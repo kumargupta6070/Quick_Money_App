@@ -16,6 +16,7 @@ import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/bind_payment_screen.dart';
 import '../../features/profile/screens/faq_screen.dart';
 import '../../features/profile/screens/account_security_screen.dart';
+import '../../features/profile/screens/customer_support_screen.dart';
 import '../../features/daily_details/screens/daily_details_screen.dart';
 import '../../features/referral/screens/team_screen.dart';
 import '../../features/referral/screens/invite_screen.dart';
@@ -27,6 +28,7 @@ import '../../features/admin/screens/admin_payouts_screen.dart';
 import '../../features/admin/screens/admin_orders_screen.dart';
 import '../../features/admin/screens/admin_users_screen.dart';
 import '../../features/admin/screens/admin_settings_screen.dart';
+import '../../features/admin/screens/admin_helpdesk_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -228,6 +230,15 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/customer-support',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const CustomerSupportScreen(),
+      ),
+    ),
+    GoRoute(
       path: '/team',
       parentNavigatorKey: rootNavigatorKey,
       pageBuilder: (context, state) => PageTransitions.slideRight(
@@ -317,6 +328,15 @@ final GoRouter appRouter = GoRouter(
         context: context,
         state: state,
         child: const AdminSettingsScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/helpdesk',
+      parentNavigatorKey: rootNavigatorKey,
+      pageBuilder: (context, state) => PageTransitions.slideRight(
+        context: context,
+        state: state,
+        child: const AdminHelpdeskScreen(),
       ),
     ),
   ],

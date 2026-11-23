@@ -103,7 +103,41 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     setState(() => _isLoading = true);
     CustomLoader.show(context, message: 'Verifying 256-Bit Security OTP...');
 
-    // 1. Forgot Password Flow
+    // 1. Login 2FA Flow
+    if (widget.type == 'login') {
+      final success = await ref
+          .read(authProvider.notifier)
+          .verifyLoginOtp(email: widget.email ?? '', otp: code);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      CustomLoader.hide(context);
+
+      if (success) {
+        final authState = ref.read(authProvider);
+        final isAdmin = authState.isAdmin || authState.role == 'admin';
+        CustomSnackBar.showTopSuccess(
+          context: context,
+          message: isAdmin
+              ? 'Super Admin authenticated! Entering Management Suite.'
+              : 'Welcome back to Quick Money! Login successful.',
+          icon: isAdmin ? LucideIcons.shieldAlert : LucideIcons.shieldCheck,
+        );
+        if (isAdmin) {
+          context.go('/admin/dashboard');
+        } else {
+          context.go('/home');
+        }
+      } else {
+        final error =
+            ref.read(authProvider).error ??
+            'Invalid or expired OTP code. Please enter the correct code.';
+        CustomSnackBar.showTopError(context: context, message: error);
+      }
+      return;
+    }
+
+    // 2. Forgot Password Flow
     if (widget.type == 'forgot_password' ||
         (widget.password == null && widget.email != null)) {
       final verified = await ref
@@ -177,6 +211,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         sent = await ref
             .read(authProvider.notifier)
             .sendPasswordResetOtp(widget.email!);
+      } else if (widget.type == 'login') {
+        sent = await ref
+            .read(authProvider.notifier)
+            .sendLoginOtp(widget.email!);
       } else {
         sent = await ref
             .read(authProvider.notifier)
@@ -240,7 +278,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
               // Header
               AuthHeader(
-                title: 'Security Verification',
+                title: widget.type == 'login'
+                    ? 'Login 2FA Security'
+                    : 'Security Verification',
                 subtitle: widget.email != null
                     ? 'Enter the 6-digit code sent to ${widget.email}'
                     : 'Enter the 6-digit code sent to +91 $phone',

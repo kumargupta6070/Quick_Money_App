@@ -58,13 +58,37 @@ class NotificationNotifier extends Notifier<List<NotificationModel>> {
   }
 
   /// Delete a single notification
-  void deleteNotification(String id) {
+  Future<void> deleteNotification(String id) async {
     state = state.where((n) => n.id != id).toList();
+    try {
+      await _apiClient.delete('${ApiEndpoints.notifications}/$id');
+    } catch (_) {}
+  }
+
+  /// Delete multiple selected notifications in batch
+  Future<void> deleteMultipleNotifications(List<String> ids) async {
+    final idSet = ids.toSet();
+    state = state.where((n) => !idSet.contains(n.id)).toList();
+    try {
+      await _apiClient.post(
+        ApiEndpoints.batchDeleteNotifications,
+        data: {'ids': ids.map((e) => int.tryParse(e) ?? e).toList()},
+      );
+    } catch (_) {}
   }
 
   /// Clear all notifications
-  void clearAll() {
+  Future<void> clearAll() async {
+    final allIds = state.map((n) => n.id).toList();
     state = [];
+    try {
+      if (allIds.isNotEmpty) {
+        await _apiClient.post(
+          ApiEndpoints.batchDeleteNotifications,
+          data: {'ids': allIds.map((e) => int.tryParse(e) ?? e).toList()},
+        );
+      }
+    } catch (_) {}
   }
 }
 

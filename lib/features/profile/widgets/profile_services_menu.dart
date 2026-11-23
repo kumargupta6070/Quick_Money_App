@@ -212,11 +212,7 @@ class ProfileServicesMenu extends StatelessWidget {
             tileBorderColor: const Color(0xFF10B981),
             onTap: () {
               HapticFeedback.lightImpact();
-              CustomSnackBar.showInfo(
-                context: context,
-                message: 'Connecting to 24/7 Live Customer Support Desk...',
-                icon: LucideIcons.headphones,
-              );
+              context.push('/customer-support');
             },
           ),
           const SizedBox(height: 8),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import 'team_member_list_sheet.dart';
 
 /// High-End FinTech Tier Card with glowing border and staggered entrance
 class TeamTierCard extends StatelessWidget {
@@ -34,7 +37,21 @@ class TeamTierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final tierKey = level.contains('Level 1')
+        ? 'L1'
+        : (level.contains('Level 2') ? 'L2' : 'L3');
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        TeamMemberListSheet.show(
+          context,
+          tier: tierKey,
+          title: level,
+          accentColor: accentColor,
+        );
+      },
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -228,7 +245,8 @@ class TeamTierCard extends StatelessWidget {
           ),
         ],
       ),
-    )
+    ),
+  )
         .animate()
         .fadeIn(delay: delayMs.ms, duration: 400.ms)
         .slideY(

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/utils/custom_loader.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../widgets/admin_payout_card.dart';
 import '../widgets/admin_screen_hero_header.dart';
@@ -28,7 +29,12 @@ class _AdminPayoutsScreenState extends ConsumerState<AdminPayoutsScreen> {
 
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
-    await ref.read(adminProvider.notifier).fetchPendingPayouts();
+    CustomLoader.show(context, message: 'Refreshing PhonePe payouts desk...');
+    try {
+      await ref.read(adminProvider.notifier).fetchPendingPayouts();
+    } finally {
+      if (mounted) CustomLoader.hide(context);
+    }
   }
 
   @override
@@ -39,6 +45,19 @@ class _AdminPayoutsScreenState extends ConsumerState<AdminPayoutsScreen> {
 
     return Scaffold(
       body: AnimatedAmbientBackground(
+        darkGradientColors: const [
+          Color(0xFF2D1402),
+          Color(0xFF451A03),
+          Color(0xFF1F0D01),
+        ],
+        lightGradientColors: const [
+          Color(0xFFFFFBEB),
+          Color(0xFFFEF3C7),
+          Color(0xFFFFF7ED),
+        ],
+        primaryOrbColor: const Color(0xFFF59E0B),
+        secondaryOrbColor: const Color(0xFFFB923C),
+        tertiaryOrbColor: const Color(0xFFEAB308),
         child: Column(
           children: [
             // 1. Signature Royal FinTech Header with HomeHeader

@@ -8,6 +8,9 @@ import '../../../core/providers/admin_provider.dart';
 import '../../../core/utils/custom_loader.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
+import '../widgets/admin_change_password_card.dart';
+import '../widgets/admin_kill_switches_card.dart';
+import '../widgets/admin_payment_gateway_card.dart';
 import '../widgets/admin_screen_hero_header.dart';
 import '../widgets/admin_settings_field_card.dart';
 import '../widgets/admin_signout_card.dart';
@@ -22,27 +25,24 @@ class AdminSettingsScreen extends ConsumerStatefulWidget {
 
 class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _yieldController;
-  late final TextEditingController _l1Controller;
-  late final TextEditingController _l2Controller;
-  late final TextEditingController _l3Controller;
-  late final TextEditingController _thresholdController;
-  late final TextEditingController _welcomeController;
-  late final TextEditingController _announcementController;
+  final _yieldController = TextEditingController();
+  final _l1Controller = TextEditingController();
+  final _l2Controller = TextEditingController();
+  final _l3Controller = TextEditingController();
+  final _thresholdController = TextEditingController();
+  final _welcomeController = TextEditingController();
+  final _announcementController = TextEditingController();
 
   String _marketStatus = 'ONLINE';
+  bool _payoutLockdown = false;
+  bool _maintenanceMode = false;
+  String _upiId = 'quickmoney@icici';
+  String _upiAccountName = 'Quick Money FinTech Ltd';
+  String _gatewayMode = 'HYBRID';
 
   @override
   void initState() {
     super.initState();
-    _yieldController = TextEditingController();
-    _l1Controller = TextEditingController();
-    _l2Controller = TextEditingController();
-    _l3Controller = TextEditingController();
-    _thresholdController = TextEditingController();
-    _welcomeController = TextEditingController();
-    _announcementController = TextEditingController();
-
     Future.microtask(() async {
       await ref.read(adminProvider.notifier).fetchSettings();
       _populateFromState();
@@ -71,6 +71,11 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
         _welcomeController.text = settings['welcome_bonus'] ?? '51.07';
         _announcementController.text = settings['announcement_text'] ?? '';
         _marketStatus = settings['market_status'] ?? 'ONLINE';
+        _payoutLockdown = settings['payout_lockdown'] == 'true';
+        _maintenanceMode = settings['maintenance_mode'] == 'true';
+        _upiId = settings['upi_deposit_id'] ?? 'quickmoney@icici';
+        _upiAccountName = settings['upi_account_name'] ?? 'Quick Money FinTech Ltd';
+        _gatewayMode = settings['payment_gateway_mode'] ?? 'HYBRID';
       });
     }
   }
@@ -107,6 +112,11 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
       'welcome_bonus': _welcomeController.text.trim(),
       'announcement_text': _announcementController.text.trim(),
       'market_status': _marketStatus,
+      'payout_lockdown': _payoutLockdown.toString(),
+      'maintenance_mode': _maintenanceMode.toString(),
+      'upi_deposit_id': _upiId,
+      'upi_account_name': _upiAccountName,
+      'payment_gateway_mode': _gatewayMode,
     };
 
     final ok = await ref.read(adminProvider.notifier).saveSettings(updated);
@@ -133,6 +143,19 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
 
     return Scaffold(
       body: AnimatedAmbientBackground(
+        darkGradientColors: const [
+          Color(0xFF0A0F1D),
+          Color(0xFF0F172A),
+          Color(0xFF070B14),
+        ],
+        lightGradientColors: const [
+          Color(0xFFF1F5F9),
+          Color(0xFFE2E8F0),
+          Color(0xFFEDF2F7),
+        ],
+        primaryOrbColor: const Color(0xFF0EA5E9),
+        secondaryOrbColor: const Color(0xFF64748B),
+        tertiaryOrbColor: const Color(0xFFEF4444),
         child: Column(
           children: [
             // 1. Signature Royal FinTech Header with HomeHeader
@@ -188,61 +211,36 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
 
                       const SizedBox(height: 18),
 
-                      // Market Status Toggle
-                      _buildSectionHeader(
-                        'MARKET STATUS & AVAILABILITY',
-                        isDark,
+                      // Emergency Circuit Breakers (Kill-Switches)
+                      AdminKillSwitchesCard(
+                        isDark: isDark,
+                        marketOnline: _marketStatus == 'ONLINE',
+                        payoutLockdown: _payoutLockdown,
+                        maintenanceMode: _maintenanceMode,
+                        onMarketToggle: (val) => setState(() => _marketStatus = val ? 'ONLINE' : 'FROZEN'),
+                        onPayoutLockdownToggle: (val) => setState(() => _payoutLockdown = val),
+                        onMaintenanceToggle: (val) => setState(() => _maintenanceMode = val),
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Market Trading Status',
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 14,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                                Text(
-                                  _marketStatus == 'ONLINE'
-                                      ? 'Traders can buy & sell RP orders'
-                                      : 'Market in maintenance mode',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Switch.adaptive(
-                              value: _marketStatus == 'ONLINE',
-                              activeThumbColor: const Color(0xFF10B981),
-                              onChanged: (val) {
-                                setState(
-                                  () => _marketStatus =
-                                      val ? 'ONLINE' : 'MAINTENANCE',
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+
+                      const SizedBox(height: 14),
+
+                      // Dynamic Payment Gateway & UPI Settings
+                      AdminPaymentGatewayCard(
+                        isDark: isDark,
+                        initialUpiId: _upiId,
+                        initialAccountName: _upiAccountName,
+                        initialPaymentMode: _gatewayMode,
+                        onSave: (upi, name, mode) {
+                          setState(() {
+                            _upiId = upi;
+                            _upiAccountName = name;
+                            _gatewayMode = mode;
+                          });
+                          _saveSettings();
+                        },
                       ),
+
+                      const SizedBox(height: 14),
 
                       const SizedBox(height: 18),
 
@@ -442,6 +440,13 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> {
                       ),
 
                       const SizedBox(height: 24),
+
+                      // Super Admin Password & Security
+                      _buildSectionHeader('ADMIN SECURITY & PASSWORD', isDark),
+                      const SizedBox(height: 10),
+                      AdminChangePasswordCard(isDark: isDark),
+
+                      const SizedBox(height: 14),
 
                       // Super Admin Sign Out Card
                       _buildSectionHeader('SUPER ADMIN ACCOUNT', isDark),

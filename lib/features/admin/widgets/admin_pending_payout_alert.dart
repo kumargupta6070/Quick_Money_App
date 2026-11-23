@@ -7,7 +7,7 @@ import '../../../core/providers/admin_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../../core/utils/currency_formatter.dart';
 
-/// Urgent Pending Payout Alert Banner with Crimson Sunset Gradient
+/// Urgent Pending Payout Alert Banner with High-End Light Amber Champagne Theme
 class AdminPendingPayoutAlert extends ConsumerWidget {
   final AdminStats stats;
   final bool isDark;
@@ -21,29 +21,45 @@ class AdminPendingPayoutAlert extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const [Color(0xFF261A05), Color(0xFF191102)]
+              : const [Color(0xFFFFFBEB), Color(0xFFFEF3C7)],
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.5 : 0.6),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFE11D48).withValues(alpha: 0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.18 : 0.14),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+              ),
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+                  blurRadius: 8,
+                ),
+              ],
             ),
-            child: const Icon(LucideIcons.bellRing, color: Colors.white, size: 20),
+            child: const Icon(LucideIcons.bellRing, color: Colors.white, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -53,7 +69,7 @@ class AdminPendingPayoutAlert extends ConsumerWidget {
                 Text(
                   '${stats.pendingPayoutsCount} PENDING PHONEPE PAYOUTS',
                   style: GoogleFonts.spaceGrotesk(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.3,
@@ -63,9 +79,9 @@ class AdminPendingPayoutAlert extends ConsumerWidget {
                 Text(
                   'Total Liability: ${CurrencyFormatter.format(stats.totalPendingPayoutsAmount)} to PhonePe UPI',
                   style: GoogleFonts.inter(
-                    color: Colors.white.withValues(alpha: 0.90),
+                    color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -76,10 +92,10 @@ class AdminPendingPayoutAlert extends ConsumerWidget {
               ref.read(adminSelectedTabProvider.notifier).selectTab(3);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFFBE123C),
+              backgroundColor: const Color(0xFFF59E0B),
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              elevation: 0,
+              elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),

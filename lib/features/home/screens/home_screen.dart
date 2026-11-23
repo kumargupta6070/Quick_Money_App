@@ -5,6 +5,7 @@ import '../../../core/providers/navigation_provider.dart';
 import '../../../core/providers/profit_provider.dart';
 import '../../../core/providers/transaction_provider.dart';
 import '../../../core/providers/user_provider.dart';
+import '../../../core/utils/custom_loader.dart';
 import '../../notification/providers/notification_provider.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../widgets/home_header.dart';
@@ -34,13 +35,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleRefresh() async {
-    await Future.wait([
-      ref.read(userProvider.notifier).fetchProfile(),
-      ref.read(profitProvider.notifier).fetchDailyDetails(),
-      ref.read(transactionProvider.notifier).fetchTransactions(),
-      ref.read(notificationProvider.notifier).fetchNotifications(),
-    ]);
-    if (mounted) setState(() {});
+    CustomLoader.show(context, message: 'Refreshing market & wallet balances...');
+    try {
+      await Future.wait([
+        ref.read(userProvider.notifier).fetchProfile(),
+        ref.read(profitProvider.notifier).fetchDailyDetails(),
+        ref.read(transactionProvider.notifier).fetchTransactions(),
+        ref.read(notificationProvider.notifier).fetchNotifications(),
+      ]);
+      if (mounted) setState(() {});
+    } finally {
+      if (mounted) CustomLoader.hide(context);
+    }
   }
 
   @override

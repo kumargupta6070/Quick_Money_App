@@ -478,28 +478,12 @@ class _LoadingDots extends StatelessWidget {
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: Color(0xFF00E5FF),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF00E5FF),
-                blurRadius: 5,
-                spreadRadius: 1,
-              ),
-            ],
+            boxShadow: [BoxShadow(color: Color(0xFF00E5FF), blurRadius: 5, spreadRadius: 1)],
           ),
         )
             .animate(onPlay: (c) => c.repeat(reverse: true))
-            .scale(
-              begin: const Offset(0.5, 0.5),
-              end: const Offset(1.3, 1.3),
-              delay: Duration(milliseconds: index * 180),
-              duration: const Duration(milliseconds: 400),
-            )
-            .fade(
-              begin: 0.3,
-              end: 1.0,
-              delay: Duration(milliseconds: index * 180),
-              duration: const Duration(milliseconds: 400),
-            );
+            .scale(begin: const Offset(0.5, 0.5), end: const Offset(1.3, 1.3), delay: Duration(milliseconds: index * 180), duration: const Duration(milliseconds: 400))
+            .fade(begin: 0.3, end: 1.0, delay: Duration(milliseconds: index * 180), duration: const Duration(milliseconds: 400));
       }),
     );
   }

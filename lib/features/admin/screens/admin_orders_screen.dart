@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/utils/custom_loader.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../widgets/admin_order_package_card.dart';
 import '../widgets/admin_package_dialog.dart';
@@ -32,9 +33,14 @@ class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
 
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
-    await ref.read(adminProvider.notifier).fetchPackages(
-          level: _selectedLevel == 'ALL' ? null : _selectedLevel,
-        );
+    CustomLoader.show(context, message: 'Refreshing RP packages...');
+    try {
+      await ref.read(adminProvider.notifier).fetchPackages(
+            level: _selectedLevel == 'ALL' ? null : _selectedLevel,
+          );
+    } finally {
+      if (mounted) CustomLoader.hide(context);
+    }
   }
 
   void _filterLevel(String lvl) {
@@ -70,6 +76,19 @@ class _AdminOrdersScreenState extends ConsumerState<AdminOrdersScreen> {
         ),
       ),
       body: AnimatedAmbientBackground(
+        darkGradientColors: const [
+          Color(0xFF1A0B2E),
+          Color(0xFF2E1065),
+          Color(0xFF140724),
+        ],
+        lightGradientColors: const [
+          Color(0xFFFAF5FF),
+          Color(0xFFF3E8FF),
+          Color(0xFFF5F3FF),
+        ],
+        primaryOrbColor: const Color(0xFF8B5CF6),
+        secondaryOrbColor: const Color(0xFFA855F7),
+        tertiaryOrbColor: const Color(0xFFEC4899),
         child: Column(
           children: [
             // 1. Signature Royal FinTech Header with HomeHeader

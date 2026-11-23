@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
 import '../../../core/providers/navigation_provider.dart';
+import 'admin_utr_approval_sheet.dart';
 
 /// Quick Action Management Hub (4 Big Administrative Control Suites)
 class AdminManagementHub extends ConsumerWidget {
@@ -197,6 +199,26 @@ class AdminManagementHub extends ConsumerWidget {
           icon: LucideIcons.users,
           iconColors: const [Color(0xFF7C3AED), Color(0xFF9333EA)],
           onTap: () => ref.read(adminSelectedTabProvider.notifier).selectTab(1),
+          isDark: isDark,
+        ),
+        const SizedBox(height: 10),
+        _buildActionTile(
+          title: 'Manual UTR Verification Desk',
+          subtitle: 'Verify UPI QR code deposits & credit RP packages instantly',
+          badgeText: 'UTR Queue',
+          icon: LucideIcons.fileCheck2,
+          iconColors: const [Color(0xFF0284C7), Color(0xFF00E5FF)],
+          onTap: () => AdminUtrApprovalSheet.show(context, isDark: isDark),
+          isDark: isDark,
+        ),
+        const SizedBox(height: 10),
+        _buildActionTile(
+          title: 'Customer Support Tickets',
+          subtitle: 'Read trader inquiries & send official priority responses',
+          badgeText: 'Support Desk',
+          icon: LucideIcons.headset,
+          iconColors: const [Color(0xFF8B5CF6), Color(0xFFC084FC)],
+          onTap: () => context.push('/admin/helpdesk'),
           isDark: isDark,
         ),
         const SizedBox(height: 10),

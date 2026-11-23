@@ -78,185 +78,232 @@ class _AdminSettleDialogState extends ConsumerState<AdminSettleDialog> {
     const themeColor = Color(0xFF10B981);
 
     return AlertDialog(
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: themeColor.withValues(alpha: 0.4),
-          width: 1.2,
-        ),
-      ),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: themeColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              LucideIcons.banknote,
-              color: themeColor,
-              size: 20,
-            ),
+      backgroundColor: Colors.transparent,
+      contentPadding: EdgeInsets.zero,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      content: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? const [Color(0xFF064E3B), Color(0xFF0D1F2D)]
+                : const [Colors.white, Color(0xFFECFDF5)],
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: themeColor.withValues(alpha: 0.45),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeColor.withValues(alpha: 0.25),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Settle PhonePe Return',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF059669), Color(0xFF10B981)],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeColor.withValues(alpha: 0.45),
+                            blurRadius: 12,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(LucideIcons.banknote, color: Colors.white, size: 20),
+                    ).animate().scale(duration: 350.ms, curve: Curves.easeOutBack),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Settle PhonePe Return',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16.5,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          Text(
+                            payout.userEmail,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Disbursement Amount:',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            ),
+                          ),
+                          Text(
+                            CurrencyFormatter.format(payout.amount),
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: themeColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'PhonePe UPI:',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              payout.destinationUpi,
+                              textAlign: TextAlign.end,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF38BDF8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'User: ${payout.userEmail}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _utrController,
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.characters,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
+                  decoration: InputDecoration(
+                    labelText: 'Bank UTR / Reference ID',
+                    hintText: 'e.g. PP9876543210',
+                    prefixIcon: const Icon(LucideIcons.fileCheck, size: 16),
+                    suffixIcon: IconButton(
+                      icon: const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFFF59E0B)),
+                      tooltip: 'Auto-Generate UTR',
+                      onPressed: _generateMockUtr,
+                    ),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (v) => (v == null || v.trim().length < 6) ? 'Enter valid UTR (min 6 chars)' : null,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF059669), Color(0xFF10B981)],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: themeColor.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: Text(
+                            'Confirm Settle',
+                            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
-      ),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Amount and Destination Strip
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Disbursement Amount:',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
-                      Text(
-                        CurrencyFormatter.format(payout.amount),
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: themeColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Target PhonePe UPI:',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
-                      Text(
-                        payout.destinationUpi,
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF38BDF8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 14),
-
-            // Bank UTR Field
-            TextFormField(
-              controller: _utrController,
-              keyboardType: TextInputType.text,
-              textCapitalization: TextCapitalization.characters,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-              decoration: InputDecoration(
-                labelText: 'Bank UTR / Transaction Reference',
-                hintText: 'e.g. PP9876543210',
-                prefixIcon: const Icon(LucideIcons.fileCheck, size: 16),
-                suffixIcon: IconButton(
-                  icon: const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFFF59E0B)),
-                  tooltip: 'Auto-Generate UTR',
-                  onPressed: _generateMockUtr,
-                ),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: themeColor, width: 1.5),
-                ),
-              ),
-              validator: (v) {
-                if (v == null || v.trim().length < 6) {
-                  return 'Please enter valid Bank UTR (minimum 6 characters)';
-                }
-                return null;
-              },
-            ),
-          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.spaceGrotesk(
-              fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: themeColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Text(
-            'Confirm Settlement',
-            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    ).animate().scale(begin: const Offset(0.92, 0.92), duration: 220.ms).fade();
+    ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack, duration: 250.ms).fade();
   }
 }

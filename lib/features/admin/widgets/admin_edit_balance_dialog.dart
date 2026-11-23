@@ -20,6 +20,17 @@ class AdminEditBalanceDialog extends ConsumerStatefulWidget {
     required this.isDark,
   });
 
+  static Future<void> show(
+    BuildContext context, {
+    required AdminUserItem user,
+    required bool isDark,
+  }) {
+    return showDialog(
+      context: context,
+      builder: (_) => AdminEditBalanceDialog(user: user, isDark: isDark),
+    );
+  }
+
   @override
   ConsumerState<AdminEditBalanceDialog> createState() =>
       _AdminEditBalanceDialogState();
@@ -49,95 +60,119 @@ class _AdminEditBalanceDialogState extends ConsumerState<AdminEditBalanceDialog>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: widget.isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: themeColor.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _isCredit ? LucideIcons.arrowUpRight : LucideIcons.arrowDownLeft,
-                color: themeColor,
-                size: 20,
-              ),
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        content: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: widget.isDark
+                ? const [Color(0xFF0F172A), Color(0xFF1E293B)]
+                : const [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Confirm Ledger Change?',
-                style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                  color: widget.isDark ? Colors.white : const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: themeColor.withValues(alpha: 0.4), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: themeColor.withValues(alpha: 0.25),
+                blurRadius: 25,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _isCredit
+                            ? const [Color(0xFF059669), Color(0xFF10B981)]
+                            : const [Color(0xFFEF4444), Color(0xFFDC2626)],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _isCredit ? LucideIcons.arrowUpRight : LucideIcons.arrowDownLeft,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Confirm Ledger Change?',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16.5,
+                        color: widget.isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: widget.isDark ? const Color(0xFF0F172A) : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: themeColor.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('User: ${widget.user.email}', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Action: ${_isCredit ? "CREDIT" : "DEBIT"} ${CurrencyFormatter.format(entered)}',
+                      style: GoogleFonts.spaceGrotesk(fontSize: 14, fontWeight: FontWeight.w900, color: themeColor),
+                    ),
+                    Text(
+                      'Resulting: ${CurrencyFormatter.format(newBalance)}',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF38BDF8)),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'User: ${widget.user.email}',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: widget.isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _executeAdjustment(entered, newBalance);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: themeColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Action: ${_isCredit ? "CREDIT" : "DEBIT"} ${CurrencyFormatter.format(entered)}',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: themeColor,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'New Resulting Balance: ${CurrencyFormatter.format(newBalance)}',
-              style: GoogleFonts.inter(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w700,
-                color: widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx); // Pop confirm
-              _executeAdjustment(entered, newBalance);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: themeColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(
-              'Yes, Adjust Ledger',
-              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
-      ).animate().scale(begin: const Offset(0.92, 0.92), duration: 200.ms).fade(),
+        ),
+      ).animate().scale(begin: const Offset(0.9, 0.9), duration: 250.ms, curve: Curves.easeOutBack).fade(),
     );
   }
 
@@ -177,61 +212,78 @@ class _AdminEditBalanceDialogState extends ConsumerState<AdminEditBalanceDialog>
     final themeColor = _isCredit ? const Color(0xFF10B981) : const Color(0xFFEF4444);
 
     return AlertDialog(
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: themeColor.withValues(alpha: 0.35),
-          width: 1.2,
+      backgroundColor: Colors.transparent,
+      contentPadding: EdgeInsets.zero,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 22),
+      content: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? const [Color(0xFF0F172A), Color(0xFF1E293B)]
+                : const [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
+          ),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: themeColor.withValues(alpha: 0.4), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: themeColor.withValues(alpha: 0.25),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-      ),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: themeColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              LucideIcons.wallet,
-              color: themeColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Adjust User Balance',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                ),
-                Text(
-                  widget.user.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      content: Form(
-        key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isCredit
+                          ? const [Color(0xFF059669), Color(0xFF10B981)]
+                          : const [Color(0xFFEF4444), Color(0xFFDC2626)],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(LucideIcons.wallet, color: Colors.white, size: 20),
+                ).animate().scale(duration: 350.ms, curve: Curves.easeOutBack),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Adjust User Balance',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16.5,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      Text(
+                        widget.user.email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
             // Current Balance Strip
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -379,25 +431,9 @@ class _AdminEditBalanceDialogState extends ConsumerState<AdminEditBalanceDialog>
                 prefixIcon: const Icon(LucideIcons.indianRupee, size: 16),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: themeColor,
-                    width: 1.5,
-                  ),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: themeColor, width: 1.5)),
               ),
               validator: (v) {
                 final d = double.tryParse(v?.trim() ?? '');
@@ -408,31 +444,47 @@ class _AdminEditBalanceDialogState extends ConsumerState<AdminEditBalanceDialog>
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.spaceGrotesk(
-              fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+      const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: _confirmAndSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: themeColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      _isCredit ? 'Credit Funds' : 'Debit Funds',
+                      style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
+          ],
         ),
-        ElevatedButton(
-          onPressed: _confirmAndSubmit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: themeColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Text(
-            _isCredit ? 'Credit Funds' : 'Debit Funds',
-            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    ).animate().scale(begin: const Offset(0.92, 0.92), duration: 220.ms).fade();
+      ),
+    ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack, duration: 250.ms).fade();
   }
 }

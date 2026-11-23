@@ -54,86 +54,98 @@ class AdminOrderPackageCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(LucideIcons.trash2, color: Color(0xFFEF4444), size: 20),
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        content: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? const [Color(0xFF1E1B2E), Color(0xFF161324)]
+                  : const [Colors.white, Color(0xFFFFF5F5)],
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Delete Package?',
-                style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.4), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                blurRadius: 25,
+                offset: const Offset(0, 8),
               ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to permanently delete package ${package.level} (${CurrencyFormatter.format(package.orderAmount)})? Traders will no longer be able to buy it.',
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-            height: 1.4,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFFEF4444), Color(0xFFDC2626)]),
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: const Color(0xFFEF4444).withValues(alpha: 0.4), blurRadius: 10)],
+                    ),
+                    child: const Icon(LucideIcons.trash2, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Delete Package?',
+                      style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, fontSize: 16.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Are you sure you want to delete package ${package.level} (${CurrencyFormatter.format(package.orderAmount)})? Traders will no longer see it in the market.',
+                style: GoogleFonts.inter(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), height: 1.4),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        CustomLoader.show(context, message: 'Deleting package...');
+                        final ok = await ref.read(adminProvider.notifier).deletePackage(package.id);
+                        if (context.mounted) {
+                          CustomLoader.hide(context);
+                          if (ok) {
+                            CustomSnackBar.showTopSuccess(context: context, message: 'Package deleted successfully.', icon: LucideIcons.trash2);
+                          } else {
+                            CustomSnackBar.showTopError(context: context, message: 'Failed to delete package.');
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w700,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              CustomLoader.show(context, message: 'Deleting package...');
-              final ok = await ref.read(adminProvider.notifier).deletePackage(package.id);
-              if (context.mounted) {
-                CustomLoader.hide(context);
-                if (ok) {
-                  CustomSnackBar.showTopSuccess(
-                    context: context,
-                    message: 'Package deleted successfully.',
-                    icon: LucideIcons.trash2,
-                  );
-                } else {
-                  CustomSnackBar.showTopError(
-                    context: context,
-                    message: 'Failed to delete package.',
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(
-              'Confirm Delete',
-              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
-      ).animate().scale(begin: const Offset(0.92, 0.92), duration: 200.ms).fade(),
+      ).animate().scale(begin: const Offset(0.9, 0.9), duration: 250.ms, curve: Curves.easeOutBack).fade(),
     );
   }
 
@@ -145,16 +157,23 @@ class AdminOrderPackageCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const [Color(0xFF2E1065), Color(0xFF1E293B)]
+              : const [Colors.white, Color(0xFFFAF5FF)],
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isActive
-              ? const Color(0xFF0284C7).withValues(alpha: 0.35)
+              ? const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.45 : 0.35)
               : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.15 : 0.06),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),

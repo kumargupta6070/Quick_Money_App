@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/utils/custom_loader.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../widgets/admin_broadcast_button.dart';
 import '../widgets/admin_financial_metrics_grid.dart';
@@ -30,10 +31,17 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
-    await Future.wait([
-      ref.read(adminProvider.notifier).fetchPlatformStats(),
-      ref.read(adminProvider.notifier).fetchPendingPayouts(),
-    ]);
+    CustomLoader.show(context, message: 'Refreshing live vault & metrics...');
+    try {
+      await Future.wait([
+        ref.read(adminProvider.notifier).fetchPlatformStats(),
+        ref.read(adminProvider.notifier).fetchPendingPayouts(),
+      ]);
+    } finally {
+      if (mounted) {
+        CustomLoader.hide(context);
+      }
+    }
   }
 
   @override
@@ -44,6 +52,19 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
 
     return Scaffold(
       body: AnimatedAmbientBackground(
+        darkGradientColors: const [
+          Color(0xFF070B18),
+          Color(0xFF0C1733),
+          Color(0xFF090D1E),
+        ],
+        lightGradientColors: const [
+          Color(0xFFEEF4FF),
+          Color(0xFFE0EDFF),
+          Color(0xFFF8FAFC),
+        ],
+        primaryOrbColor: const Color(0xFF2563EB),
+        secondaryOrbColor: const Color(0xFF00E5FF),
+        tertiaryOrbColor: const Color(0xFFF59E0B),
         child: RefreshIndicator(
           onRefresh: _onRefresh,
           color: const Color(0xFFF59E0B),

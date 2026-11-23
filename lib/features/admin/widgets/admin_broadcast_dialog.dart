@@ -85,69 +85,82 @@ class _AdminBroadcastDialogState extends ConsumerState<AdminBroadcastDialog> {
     const themeColor = Color(0xFF8B5CF6); // Royal Violet / Purple
 
     return AlertDialog(
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: themeColor.withValues(alpha: 0.4),
-          width: 1.2,
+      backgroundColor: Colors.transparent,
+      contentPadding: EdgeInsets.zero,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      content: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? const [Color(0xFF24143D), Color(0xFF130924)]
+                : const [Colors.white, Color(0xFFFAF5FF)],
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: themeColor.withValues(alpha: 0.45),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeColor.withValues(alpha: 0.25),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-      ),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(
-              LucideIcons.megaphone,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Broadcast ($_announcementType)',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.45),
+                            blurRadius: 12,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(LucideIcons.megaphone, color: Colors.white, size: 20),
+                    ).animate().scale(duration: 350.ms, curve: Curves.easeOutBack),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Broadcast ($_announcementType)',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16.5,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          Text(
+                            'Pushes in-app alert to all traders',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  'Pushes in-app alert to all traders',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
               // Presets Strip
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -239,51 +252,75 @@ class _AdminBroadcastDialogState extends ConsumerState<AdminBroadcastDialog> {
                     borderSide: const BorderSide(color: themeColor, width: 1.5),
                   ),
                 ),
-                validator: (v) {
-                  if (v == null || v.trim().length < 5) {
-                    return 'Please enter message content (minimum 5 characters)';
-                  }
-                  return null;
-                },
+                validator: (v) => (v == null || v.trim().length < 5) ? 'Enter content (min 5 chars)' : null,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeColor.withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(LucideIcons.send, size: 14, color: Colors.white),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Blast Alert',
+                              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w900, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.spaceGrotesk(
-              fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: themeColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(LucideIcons.send, size: 14),
-              const SizedBox(width: 6),
-              Text(
-                'Blast Broadcast',
-                style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w800),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ).animate().scale(begin: const Offset(0.92, 0.92), duration: 220.ms).fade();
-  }
+    ),
+  ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack, duration: 250.ms).fade();
+}
 
   Widget _buildPresetChip({
     required String label,

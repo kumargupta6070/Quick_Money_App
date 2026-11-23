@@ -105,17 +105,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    CustomLoader.show(context, message: 'Authenticating with 256-Bit AES...');
+    CustomLoader.show(context, message: 'Validating credentials & sending OTP...');
 
     try {
-      final success = await ref
+      final result = await ref
           .read(authProvider.notifier)
-      .login(mobile: cleanDigits, email: email, password: password);
+          .login(mobile: cleanDigits, email: email, password: password);
 
       if (!mounted) return;
       CustomLoader.hide(context);
 
-      if (success) {
+      if (result.success) {
+        if (result.requiresOtp) {
+          final targetEmail = result.email ?? email;
+          CustomSnackBar.showTopSuccess(
+            context: context,
+            message: 'Security code sent to $targetEmail! Please verify.',
+            icon: LucideIcons.mailCheck,
+          );
+          context.push(
+            '/otp',
+            extra: {
+              'email': targetEmail,
+              'mobile': cleanDigits,
+              'type': 'login',
+            },
+          );
+          return;
+        }
+
         final authState = ref.read(authProvider);
         final isAdmin = authState.isAdmin || authState.role == 'admin';
         CustomSnackBar.showTopSuccess(
@@ -131,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           context.go('/home');
         }
       } else {
-        final err =
+        final err = result.error ??
             ref.read(authProvider).error ??
             'Invalid credentials. Please verify your mobile, email and password.';
         CustomSnackBar.showTopError(context: context, message: err);

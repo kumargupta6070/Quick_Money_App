@@ -1,4 +1,4 @@
-enum OrderStatus { active, receiving, completed, cancelled }
+enum OrderStatus { active, receiving, completed, cancelled, paused }
 
 class OrderModel {
   final int id;

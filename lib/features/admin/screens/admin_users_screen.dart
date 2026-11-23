@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/providers/admin_provider.dart';
+import '../../../core/utils/custom_loader.dart';
 import '../../../shared/widgets/animated_ambient_background.dart';
 import '../widgets/admin_screen_hero_header.dart';
 import '../widgets/admin_user_card.dart';
@@ -45,10 +46,15 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
-    await ref.read(adminProvider.notifier).fetchUsers(
-          query: _searchController.text.trim(),
-          status: _selectedStatus,
-        );
+    CustomLoader.show(context, message: 'Refreshing traders ledger...');
+    try {
+      await ref.read(adminProvider.notifier).fetchUsers(
+            query: _searchController.text.trim(),
+            status: _selectedStatus,
+          );
+    } finally {
+      if (mounted) CustomLoader.hide(context);
+    }
   }
 
   @override
@@ -59,6 +65,19 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
 
     return Scaffold(
       body: AnimatedAmbientBackground(
+        darkGradientColors: const [
+          Color(0xFF022C22),
+          Color(0xFF064E3B),
+          Color(0xFF021B15),
+        ],
+        lightGradientColors: const [
+          Color(0xFFE8FDF5),
+          Color(0xFFD1FAE5),
+          Color(0xFFF0FDF4),
+        ],
+        primaryOrbColor: const Color(0xFF10B981),
+        secondaryOrbColor: const Color(0xFF14B8A6),
+        tertiaryOrbColor: const Color(0xFF34D399),
         child: Column(
           children: [
             // 1. Signature Royal FinTech Header with HomeHeader

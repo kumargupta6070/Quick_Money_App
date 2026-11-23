@@ -12,6 +12,9 @@ class NotificationItemCard extends StatelessWidget {
   final bool isDark;
   final VoidCallback onTap;
   final VoidCallback onDismissed;
+  final bool isSelected;
+  final bool isSelectionMode;
+  final VoidCallback? onLongPress;
 
   const NotificationItemCard({
     super.key,
@@ -20,6 +23,9 @@ class NotificationItemCard extends StatelessWidget {
     required this.isDark,
     required this.onTap,
     required this.onDismissed,
+    this.isSelected = false,
+    this.isSelectionMode = false,
+    this.onLongPress,
   });
 
   String _formatRelativeTime(DateTime dt) {
@@ -38,6 +44,45 @@ class NotificationItemCard extends StatelessWidget {
     return Dismissible(
       key: Key(item.id),
       direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        HapticFeedback.mediumImpact();
+        return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(
+              'Delete Notification?',
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            content: Text(
+              'Are you sure you want to remove this notification?',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text('Cancel', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text('Delete', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+      },
       onDismissed: (_) {
         HapticFeedback.lightImpact();
         onDismissed();
@@ -63,25 +108,40 @@ class NotificationItemCard extends StatelessWidget {
           HapticFeedback.lightImpact();
           onTap();
         },
-        child: Container(
+        onLongPress: onLongPress != null
+            ? () {
+                HapticFeedback.mediumImpact();
+                onLongPress!();
+              }
+            : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: typeConfig.cardGradient,
+              colors: isSelected
+                  ? (isDark
+                      ? const [Color(0xFF1E1B4B), Color(0xFF312E81)]
+                      : const [Color(0xFFEEF2FF), Color(0xFFE0E7FF)])
+                  : typeConfig.cardGradient,
             ),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: typeConfig.borderColor,
-              width: item.isRead ? 1.1 : 1.4,
+              color: isSelected
+                  ? const Color(0xFF818CF8)
+                  : typeConfig.borderColor,
+              width: isSelected ? 2.0 : (item.isRead ? 1.1 : 1.4),
             ),
             boxShadow: [
               BoxShadow(
-                color: typeConfig.accentColor.withValues(
-                  alpha: isDark ? 0.22 : 0.12,
-                ),
-                blurRadius: item.isRead ? 8 : 14,
+                color: isSelected
+                    ? const Color(0xFF6366F1).withValues(alpha: 0.35)
+                    : typeConfig.accentColor.withValues(
+                        alpha: isDark ? 0.22 : 0.12,
+                      ),
+                blurRadius: isSelected ? 16 : (item.isRead ? 8 : 14),
                 offset: const Offset(0, 4),
               ),
             ],
@@ -114,6 +174,39 @@ class NotificationItemCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Multi-select Indicator Circle
+                    if (isSelectionMode) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, right: 10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? const Color(0xFF6366F1)
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF6366F1)
+                                  : (isDark
+                                      ? const Color(0xFF64748B)
+                                      : const Color(0xFF94A3B8)),
+                              width: 2,
+                            ),
+                          ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ],
+
                     // Category 3D Icon Container
                     Container(
                       width: 44,
