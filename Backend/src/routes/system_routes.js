@@ -59,6 +59,32 @@ router.get('/mail-diagnostic', async (req, res) => {
       hasEmailPass: Boolean(process.env.EMAIL_APP_PASSWORD),
     };
 
+    let brevoDirectTest = null;
+    const bKey = (process.env.BREVO_API_KEY || process.env.BREVO_KEY || process.env.BREVO_SMTP_KEY)?.replace(/["'\s]/g, '');
+    if (toEmail && bKey) {
+      const fromEmail = (process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER || 'quick.moneey.in@gmail.com').replace(/["'\s]/g, '');
+      try {
+        const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': bKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            sender: { name: 'Quick Money Security', email: fromEmail },
+            to: [{ email: toEmail }],
+            subject: 'Quick Money Brevo Direct Test',
+            htmlContent: '<p>Test</p>',
+          }),
+        });
+        const d = await r.json().catch(() => ({}));
+        brevoDirectTest = { status: r.status, ok: r.ok, fromEmail, data: d };
+      } catch (e) {
+        brevoDirectTest = { error: e.message };
+      }
+    }
+
     if (toEmail) {
       sendResult = await brevoMailer.sendOtpEmail({
         toEmail: String(toEmail).trim().toLowerCase(),
@@ -70,6 +96,7 @@ router.get('/mail-diagnostic', async (req, res) => {
     return ResponseHandler.success(res, {
       detectedKeys,
       transporterReady: isReady,
+      brevoDirectTest,
       sendResult,
     }, 'Mail diagnostic check completed');
   } catch (error) {
