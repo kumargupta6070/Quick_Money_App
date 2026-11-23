@@ -31,7 +31,7 @@ services:
       - key: EMAIL_USER
         value: quick.moneey.in@gmail.com
       - key: EMAIL_APP_PASSWORD
-        sync: false
+        value: "zowi plsgaqieqpkk"
       - key: AES_SECRET_KEY
         sync: false
       - key: AES_IV

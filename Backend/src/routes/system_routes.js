@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { SystemSetting } = require('../models');
 const ResponseHandler = require('../utils/response_handler');
+const brevoMailer = require('../services/brevo_mailer');
 
 // Default fallback release metadata
 const DEFAULT_RELEASE = {
@@ -35,6 +36,32 @@ router.get('/app-release', async (req, res) => {
     return ResponseHandler.success(res, parsed, 'Latest APK release metadata');
   } catch (error) {
     return ResponseHandler.success(res, DEFAULT_RELEASE, 'Fallback release metadata');
+  }
+});
+
+/**
+ * Health & diagnostic check for live email transmission
+ */
+router.get('/mail-diagnostic', async (req, res) => {
+  try {
+    const isReady = Boolean(brevoMailer.transporter);
+    const { toEmail } = req.query;
+    let sendResult = null;
+    if (toEmail) {
+      sendResult = await brevoMailer.sendOtpEmail({
+        toEmail: String(toEmail).trim().toLowerCase(),
+        otp: '998877',
+        type: 'test',
+      });
+    }
+    return ResponseHandler.success(res, {
+      service: 'gmail',
+      user: process.env.EMAIL_USER || 'quick.moneey.in@gmail.com',
+      transporterReady: isReady,
+      sendResult,
+    }, 'Mail diagnostic check completed');
+  } catch (error) {
+    return ResponseHandler.error(res, error.message, 500);
   }
 });
 

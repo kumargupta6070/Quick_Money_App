@@ -12,26 +12,39 @@ class BrevoMailerService {
 
   _initTransporter() {
     // Initialize High-Speed Pooled SMTP Transporter (Gmail App Password or Brevo SMTP relay)
-    const user = process.env.EMAIL_USER || process.env.BREVO_SMTP_USER;
-    const rawPass = process.env.EMAIL_APP_PASSWORD || process.env.BREVO_SMTP_KEY;
+    const user = process.env.EMAIL_USER || process.env.BREVO_SMTP_USER || 'quick.moneey.in@gmail.com';
+    const rawPass = process.env.EMAIL_APP_PASSWORD || process.env.BREVO_SMTP_KEY || 'zowi plsgaqieqpkk';
     const pass = rawPass ? String(rawPass).replace(/["'\s]/g, '') : null;
 
     if (user && pass) {
       const isGmail = user.includes('@gmail.com');
-      this.transporter = nodemailer.createTransport({
-        host: isGmail ? 'smtp.gmail.com' : (process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com'),
-        port: isGmail ? 465 : parseInt(process.env.BREVO_SMTP_PORT || '587', 10),
-        secure: isGmail ? true : (process.env.BREVO_SMTP_PORT === '465'),
-        pool: true, // Keep socket alive for sub-2-second instant dispatch
-        maxConnections: 5,
-        maxMessages: 100,
-        rateDelta: 1000,
-        rateLimit: 5,
-        connectionTimeout: 10000, // 10s to establish connection
-        greetingTimeout: 10000,   // 10s for greeting
-        socketTimeout: 15000,     // 15s socket timeout
-        auth: { user, pass },
-      });
+      const transportConfig = isGmail
+        ? {
+            service: 'gmail',
+            auth: { user, pass },
+            pool: true,
+            maxConnections: 5,
+            maxMessages: 100,
+            rateDelta: 1000,
+            rateLimit: 5,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+          }
+        : {
+            host: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+            port: parseInt(process.env.BREVO_SMTP_PORT || '587', 10),
+            secure: process.env.BREVO_SMTP_PORT === '465',
+            auth: { user, pass },
+            pool: true,
+            maxConnections: 5,
+            maxMessages: 100,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+          };
+
+      this.transporter = nodemailer.createTransport(transportConfig);
 
       // Warm up connection asynchronously on startup
       this.transporter.verify().then(() => {
@@ -40,7 +53,7 @@ class BrevoMailerService {
         logger.warn(`SMTP pool warm-up notice: ${err.message}`);
       });
     } else {
-      logger.warn('No SMTP credentials found in .env');
+      logger.warn('No SMTP credentials found in environment');
     }
   }
 
