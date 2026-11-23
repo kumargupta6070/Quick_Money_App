@@ -122,36 +122,50 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
         Color statusColor;
         String statusText;
         IconData statusIcon;
+        List<Color> gradientColors;
 
         if (status == 'resolved') {
           statusColor = const Color(0xFF10B981);
           statusText = 'RESOLVED';
           statusIcon = LucideIcons.checkCheck;
+          gradientColors = isDark
+              ? const [Color(0xFF04241B), Color(0xFF0A3629)]
+              : const [Color(0xFFF0FDF4), Color(0xFFDCFCE7)];
         } else if (status == 'replied') {
           statusColor = const Color(0xFF0284C7);
           statusText = 'REPLIED BY ADMIN';
           statusIcon = LucideIcons.messageSquare;
+          gradientColors = isDark
+              ? const [Color(0xFF082238), Color(0xFF0F3252)]
+              : const [Color(0xFFF0F9FF), Color(0xFFE0F2FE)];
         } else {
           statusColor = const Color(0xFFF59E0B);
           statusText = 'IN REVIEW';
           statusIcon = LucideIcons.clock;
+          gradientColors = isDark
+              ? const [Color(0xFF261503), Color(0xFF381F04)]
+              : const [Color(0xFFFFFBEB), Color(0xFFFEF3C7)];
         }
 
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF0F172A) : Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
+            ),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: statusColor.withValues(alpha: isDark ? 0.40 : 0.25),
-              width: 1.2,
+              color: statusColor.withValues(alpha: isDark ? 0.45 : 0.35),
+              width: 1.3,
             ),
             boxShadow: [
               BoxShadow(
-                color: statusColor.withValues(alpha: isDark ? 0.12 : 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                color: statusColor.withValues(alpha: isDark ? 0.14 : 0.07),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -164,7 +178,7 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                      color: const Color(0xFF0284C7).withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -178,22 +192,34 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
                   ),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(
-                      category,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Text(
+                        category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                        ),
                       ),
                     ),
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
+                      color: statusColor.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.4),
+                        width: 1,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -216,41 +242,57 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
 
               const SizedBox(height: 10),
 
-              // Subject
-              Text(
-                subject,
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+              // Query Content Box
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.black : Colors.white).withValues(alpha: isDark ? 0.35 : 0.65),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 4),
-
-              // Message
-              Text(
-                message,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  height: 1.35,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      subject,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      message,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
               // Admin Solution Box
               if (adminReply.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: isDark
-                          ? const [Color(0xFF064E3B), Color(0xFF042F2E)]
-                          : const [Color(0xFFECFDF5), Color(0xFFD1FAE5)],
+                          ? const [Color(0xFF063327), Color(0xFF032219)]
+                          : const [Color(0xFFE8FDF3), Color(0xFFD1FAE5)],
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(13),
                     border: Border.all(
                       color: const Color(0xFF10B981).withValues(alpha: 0.4),
                     ),
@@ -260,14 +302,21 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
                     children: [
                       Row(
                         children: [
-                          const Icon(LucideIcons.checkCircle2, size: 14, color: Color(0xFF10B981)),
-                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFF10B981),
+                            ),
+                            child: const Icon(LucideIcons.check, size: 10, color: Colors.white),
+                          ),
+                          const SizedBox(width: 7),
                           Text(
                             'ADMIN SOLUTION & RESPONSE',
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.4,
                               color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF065F46),
                             ),
                           ),
@@ -294,6 +343,12 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  Icon(
+                    LucideIcons.clock,
+                    size: 11,
+                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 4),
                   Text(
                     'Logged on ${_formatTime(createdAt)}',
                     style: GoogleFonts.inter(
@@ -305,7 +360,7 @@ class _UserTicketsViewState extends ConsumerState<UserTicketsView> {
               ),
             ],
           ),
-        ).animate().fadeIn(duration: 250.ms).slideY(begin: 0.05, end: 0);
+        ).animate().fadeIn(duration: 250.ms).slideY(begin: 0.05, end: 0, curve: Curves.easeOutCubic);
       }).toList(),
     );
   }

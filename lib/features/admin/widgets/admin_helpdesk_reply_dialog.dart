@@ -328,8 +328,11 @@ class _AdminHelpdeskReplyDialogState extends State<AdminHelpdeskReplyDialog> {
 
               const SizedBox(height: 14),
 
-              // Status Selector
-              Row(
+              // Status Selector (Zero overflow on all mobile screens)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     'Ticket Status:',
@@ -339,28 +342,34 @@ class _AdminHelpdeskReplyDialogState extends State<AdminHelpdeskReplyDialog> {
                       color: widget.isDark ? Colors.white70 : const Color(0xFF334155),
                     ),
                   ),
-                  const SizedBox(width: 10),
                   ChoiceChip(
+                    avatar: _selectedStatus == 'resolved'
+                        ? const Icon(LucideIcons.check, size: 13, color: Colors.white)
+                        : null,
                     label: const Text('Resolved'),
                     selected: _selectedStatus == 'resolved',
                     onSelected: (val) {
                       if (val) setState(() => _selectedStatus = 'resolved');
                     },
                     selectedColor: const Color(0xFF10B981),
+                    backgroundColor: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
                     labelStyle: GoogleFonts.spaceGrotesk(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: _selectedStatus == 'resolved' ? Colors.white : const Color(0xFF10B981),
                     ),
                   ),
-                  const SizedBox(width: 8),
                   ChoiceChip(
+                    avatar: _selectedStatus == 'replied'
+                        ? const Icon(LucideIcons.messageSquare, size: 12, color: Colors.white)
+                        : null,
                     label: const Text('Replied (Pending)'),
                     selected: _selectedStatus == 'replied',
                     onSelected: (val) {
                       if (val) setState(() => _selectedStatus = 'replied');
                     },
                     selectedColor: const Color(0xFF0284C7),
+                    backgroundColor: (widget.isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
                     labelStyle: GoogleFonts.spaceGrotesk(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,

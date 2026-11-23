@@ -55,7 +55,6 @@ class _AdminPackageDialogState extends ConsumerState<AdminPackageDialog> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    Navigator.pop(context);
     final isEditing = widget.package != null;
     final amt = double.parse(_amountCtrl.text.trim());
     final qty = int.parse(_qtyCtrl.text.trim());
@@ -92,14 +91,11 @@ class _AdminPackageDialogState extends ConsumerState<AdminPackageDialog> {
     } catch (_) {
       ok = false;
     } finally {
-      if (mounted) {
-        CustomLoader.hide(context);
-      }
+      CustomLoader.hide(context);
     }
 
     if (mounted) {
       if (ok) {
-        Navigator.of(context).pop();
         HapticFeedback.mediumImpact();
         CustomSnackBar.showTopSuccess(
           context: context,
@@ -108,6 +104,7 @@ class _AdminPackageDialogState extends ConsumerState<AdminPackageDialog> {
               : 'New RP Package created and deployed!',
           icon: LucideIcons.packageCheck,
         );
+        Navigator.of(context).pop();
       } else {
         CustomSnackBar.showTopError(
           context: context,

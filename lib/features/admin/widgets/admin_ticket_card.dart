@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -31,46 +32,59 @@ class AdminTicketCard extends StatelessWidget {
     final ticketNum = ticket['ticket_number']?.toString() ?? '#TKT';
     final userEmail = ticket['user_email']?.toString() ?? 'User';
     final userMobile = ticket['user_mobile']?.toString() ?? '';
-    final category = ticket['category']?.toString() ?? 'General Dispute';
+    final category = ticket['category']?.toString() ?? 'Dispute';
     final subject = ticket['subject']?.toString() ?? 'No Subject';
     final message = ticket['message']?.toString() ?? '';
     final status = (ticket['status']?.toString().toLowerCase()) ?? 'open';
     final adminReply = ticket['admin_reply']?.toString() ?? '';
     final createdAt = ticket['created_at']?.toString();
 
+    // Distinct Luxury Gradient Background & Accent Per Status
     Color statusColor;
     String statusLabel;
     IconData statusIcon;
+    List<Color> gradientColors;
 
     if (status == 'resolved') {
       statusColor = const Color(0xFF10B981);
       statusLabel = 'RESOLVED';
       statusIcon = LucideIcons.checkCheck;
+      gradientColors = isDark
+          ? const [Color(0xFF04241B), Color(0xFF0A3629)]
+          : const [Color(0xFFF0FDF4), Color(0xFFDCFCE7)];
     } else if (status == 'replied') {
       statusColor = const Color(0xFF0284C7);
       statusLabel = 'REPLIED';
       statusIcon = LucideIcons.messageSquare;
+      gradientColors = isDark
+          ? const [Color(0xFF082238), Color(0xFF0F3252)]
+          : const [Color(0xFFF0F9FF), Color(0xFFE0F2FE)];
     } else {
       statusColor = const Color(0xFFF59E0B);
-      statusLabel = 'OPEN • ACTION NEEDED';
+      statusLabel = 'OPEN';
       statusIcon = LucideIcons.alertCircle;
+      gradientColors = isDark
+          ? const [Color(0xFF261503), Color(0xFF381F04)]
+          : const [Color(0xFFFFFBEB), Color(0xFFFEF3C7)];
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF0F172A)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: statusColor.withValues(alpha: isDark ? 0.40 : 0.25),
-          width: 1.2,
+          color: statusColor.withValues(alpha: isDark ? 0.45 : 0.35),
+          width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: isDark ? 0.12 : 0.06),
-            blurRadius: 12,
+            color: statusColor.withValues(alpha: isDark ? 0.16 : 0.08),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -82,19 +96,19 @@ class AdminTicketCard extends StatelessWidget {
             HapticFeedback.lightImpact();
             onTap();
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Ticket Number & Status Pill
+                // Top Row: Ticket Number & Status Pill (Guaranteed zero-overflow)
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -107,29 +121,33 @@ class AdminTicketCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        category,
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Text(
+                          category,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                          ),
                         ),
                       ),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.15),
+                        color: statusColor.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: statusColor.withValues(alpha: 0.35),
+                          color: statusColor.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -154,59 +172,100 @@ class AdminTicketCard extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                // Subject
-                Text(
-                  subject,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                // Query Box (Subject & Message Preview)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: (isDark ? Colors.black : Colors.white).withValues(alpha: isDark ? 0.35 : 0.65),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subject,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          height: 1.35,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 4),
-
-                // Message Preview
-                Text(
-                  message,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    height: 1.35,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                  ),
-                ),
-
-                // Existing Admin Reply (if any)
+                // Official Admin Resolution Box (if answered)
                 if (adminReply.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? const [Color(0xFF063327), Color(0xFF032219)]
+                            : const [Color(0xFFE8FDF3), Color(0xFFD1FAE5)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                        color: const Color(0xFF10B981).withValues(alpha: 0.4),
                       ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(LucideIcons.reply, size: 13, color: Color(0xFF10B981)),
-                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF10B981),
+                          ),
+                          child: const Icon(LucideIcons.check, size: 10, color: Colors.white),
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            'Admin Solution: "$adminReply"',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF065F46),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Official Admin Resolution',
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF10B981),
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                adminReply,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF065F46),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -214,9 +273,9 @@ class AdminTicketCard extends StatelessWidget {
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
-                // Bottom Meta: User identity + Action button
+                // Bottom Meta: User identity + Action button (Zero overflow)
                 Row(
                   children: [
                     Icon(
@@ -225,42 +284,45 @@ class AdminTicketCard extends StatelessWidget {
                       color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                     ),
                     const SizedBox(width: 5),
-                    Flexible(
+                    Expanded(
                       child: Text(
-                        '$userEmail${userMobile.isNotEmpty ? ' ($userMobile)' : ''}',
+                        '$userEmail${userMobile.isNotEmpty ? ' ($userMobile)' : ''} • ${_formatRelativeTime(createdAt)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.inter(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      '• ${_formatRelativeTime(createdAt)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 10.5,
-                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                      ),
-                    ),
-                    const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(9),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.edit3, size: 12, color: Colors.white),
+                          Icon(
+                            status == 'resolved' ? LucideIcons.fileCheck2 : LucideIcons.messageSquarePlus,
+                            size: 12,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            status == 'resolved' ? 'Edit Solution' : 'Solve & Reply',
+                            status == 'resolved' ? 'View / Edit' : 'Solve & Reply',
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w800,
@@ -277,6 +339,6 @@ class AdminTicketCard extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 250.ms).slideY(begin: 0.05, end: 0, duration: 250.ms, curve: Curves.easeOutCubic);
   }
 }
