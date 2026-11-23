@@ -27,6 +27,9 @@ class BrevoMailerService {
         maxMessages: 100,
         rateDelta: 1000,
         rateLimit: 5,
+        connectionTimeout: 3500, // Max 3.5s to establish connection
+        greetingTimeout: 2500,   // Max 2.5s for greeting
+        socketTimeout: 4000,     // Max 4s socket timeout
         auth: { user, pass },
       });
 
@@ -256,12 +259,16 @@ class BrevoMailerService {
       // 1. High-Priority: Pooled High-Speed Gmail SMTP (Sub-2-second Instant Delivery)
       if (this.transporter) {
         try {
-          const info = await this.transporter.sendMail({
+          const sendPromise = this.transporter.sendMail({
             from: `"${fromName}" <${fromEmail}>`,
             to: toEmail,
             subject,
             html: htmlContent,
           });
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('SMTP timeout after 4s')), 4000)
+          );
+          const info = await Promise.race([sendPromise, timeoutPromise]);
           logger.info(`⚡ Instant Email OTP delivered to ${toEmail} via High-Speed Gmail SMTP (MessageId: ${info.messageId})`);
           return { success: true, messageId: info.messageId, mode: 'smtp_pool' };
         } catch (err) {
@@ -272,7 +279,10 @@ class BrevoMailerService {
       // 2. Backup Relay: Brevo HTTPS REST API (if configured)
       if (process.env.BREVO_API_KEY) {
         try {
+          const controller = new AbortController();
+          const tId = setTimeout(() => controller.abort(), 4000);
           const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            signal: controller.signal,
             method: 'POST',
             headers: {
               'api-key': process.env.BREVO_API_KEY,
@@ -286,6 +296,7 @@ class BrevoMailerService {
               htmlContent,
             }),
           });
+          clearTimeout(tId);
 
           if (response.ok) {
             const resData = await response.json().catch(() => ({}));
