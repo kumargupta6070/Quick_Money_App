@@ -51,7 +51,8 @@ class _AdminApkUploadCardState extends ConsumerState<AdminApkUploadCard> {
         return;
       }
 
-      final sizeMb = (file.size / (1024 * 1024)).toStringAsFixed(1) + ' MB';
+      final bytes = file.lengthSync() ?? await file.length() ?? 0;
+      final sizeMb = (bytes / (1024 * 1024)).toStringAsFixed(1) + ' MB';
       String detectedVersion = '1.0.1';
       final versionMatch = RegExp(r'v?(\d+\.\d+(\.\d+)?)', caseSensitive: false)
           .firstMatch(file.name);
@@ -171,7 +172,7 @@ class _AdminApkUploadCardState extends ConsumerState<AdminApkUploadCard> {
               children: [
                 Expanded(
                   child: Text(
-                    _selectedFileName!,
+                    '$_selectedFileName${_selectedFileSize != null ? ' ($_selectedFileSize)' : ''}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(

@@ -159,7 +159,9 @@ class AdminReleaseNotifier extends Notifier<AppReleaseState> {
           releaseNotes: (data['release_notes'] ?? data['releaseNotes'] ?? state.releaseNotes).toString(),
           isActive: true,
           isLoading: false,
-          successMessage: res.message ?? 'APK uploaded & synced live with website!',
+          successMessage: res.message.isNotEmpty
+              ? res.message
+              : 'APK uploaded & synced live with website!',
         );
         return true;
       } else {

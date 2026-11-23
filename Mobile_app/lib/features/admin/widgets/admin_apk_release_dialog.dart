@@ -336,7 +336,7 @@ class _AdminApkReleaseDialogState extends ConsumerState<AdminApkReleaseDialog> {
                           ),
                           Switch(
                             value: _isActive,
-                            activeColor: const Color(0xFF10B981),
+                            activeThumbColor: const Color(0xFF10B981),
                             onChanged: (val) => setState(() => _isActive = val),
                           ),
                         ],
