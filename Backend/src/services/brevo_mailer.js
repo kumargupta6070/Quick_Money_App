@@ -387,7 +387,42 @@ class BrevoMailerService {
         }
       }
 
-      // 4. Standard SMTP Transporter (Works on paid tiers, local dev, or hosts with open SMTP ports)
+      // 4. Brevo SMTP Relay over Port 2525 (Port 2525 is UNBLOCKED on Render Free Tier!)
+      if (brevoKey && (brevoKey.startsWith('xsmtpsib') || process.env.BREVO_SMTP_KEY)) {
+        const candidateUsers = [
+          process.env.BREVO_SMTP_USER,
+          'kumargupta6070@gmail.com',
+          'quick.moneey.in@gmail.com',
+          process.env.BREVO_FROM_EMAIL,
+          process.env.EMAIL_USER,
+        ].filter(Boolean);
+
+        for (const sUser of [...new Set(candidateUsers)]) {
+          try {
+            const relay = nodemailer.createTransport({
+              host: 'smtp-relay.brevo.com',
+              port: 2525,
+              secure: false,
+              auth: { user: sUser, pass: brevoKey },
+              connectionTimeout: 5000,
+            });
+            const sInfo = await relay.sendMail({
+              from: `"${fromName}" <${sUser}>`,
+              to: toEmail,
+              subject,
+              html: htmlContent,
+            });
+            if (sInfo && sInfo.messageId) {
+              logger.info(`⚡ Email OTP delivered to ${toEmail} via Brevo SMTP:2525 (MessageId: ${sInfo.messageId})`);
+              return { success: true, messageId: sInfo.messageId, mode: 'brevo_smtp_2525', sender: sUser };
+            }
+          } catch (smtpErr) {
+            logger.warn(`Brevo SMTP 2525 with user ${sUser} failed: ${smtpErr.message}`);
+          }
+        }
+      }
+
+      // 5. Standard SMTP Transporter (Works on paid tiers, local dev, or hosts with open SMTP ports)
       if (this.transporter) {
         try {
           const info = await this.transporter.sendMail({

@@ -89,28 +89,38 @@ router.get('/mail-diagnostic', async (req, res) => {
 
     let brevoSmtpTest = null;
     if (toEmail && bKey) {
-      try {
-        const nodemailer = require('nodemailer');
-        const sUser = process.env.BREVO_SMTP_USER || process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER;
-        const testTransporter = nodemailer.createTransport({
-          host: 'smtp-relay.brevo.com',
-          port: 2525,
-          secure: false,
-          auth: {
-            user: sUser,
-            pass: bKey,
-          },
-          connectionTimeout: 5000,
-        });
-        const sInfo = await testTransporter.sendMail({
-          from: '"Quick Money" <' + sUser + '>',
-          to: toEmail,
-          subject: 'Brevo SMTP 2525 Test',
-          text: 'Test',
-        });
-        brevoSmtpTest = { success: true, messageId: sInfo.messageId };
-      } catch (e) {
-        brevoSmtpTest = { error: e.message, code: e.code };
+      const candidateUsers = [
+        process.env.BREVO_SMTP_USER,
+        'kumargupta6070@gmail.com',
+        'quick.moneey.in@gmail.com',
+        process.env.BREVO_FROM_EMAIL,
+        process.env.EMAIL_USER,
+      ].filter(Boolean);
+
+      for (const sUser of [...new Set(candidateUsers)]) {
+        try {
+          const nodemailer = require('nodemailer');
+          const testTransporter = nodemailer.createTransport({
+            host: 'smtp-relay.brevo.com',
+            port: 2525,
+            secure: false,
+            auth: {
+              user: sUser,
+              pass: bKey,
+            },
+            connectionTimeout: 5000,
+          });
+          const sInfo = await testTransporter.sendMail({
+            from: '"Quick Money" <' + sUser + '>',
+            to: toEmail,
+            subject: 'Brevo SMTP 2525 Test (' + sUser + ')',
+            text: 'Test OTP 782914',
+          });
+          brevoSmtpTest = { success: true, userUsed: sUser, messageId: sInfo.messageId };
+          break;
+        } catch (e) {
+          brevoSmtpTest = { lastAttemptedUser: sUser, error: e.message, code: e.code };
+        }
       }
     }
 
