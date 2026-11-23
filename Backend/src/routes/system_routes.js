@@ -47,18 +47,34 @@ router.get('/mail-diagnostic', async (req, res) => {
     const isReady = Boolean(brevoMailer.transporter);
     const { toEmail } = req.query;
     let sendResult = null;
-    if (toEmail) {
-      sendResult = await brevoMailer.sendOtpEmail({
-        toEmail: String(toEmail).trim().toLowerCase(),
-        otp: '998877',
-        type: 'test',
-      });
+    let smtpDirectError = null;
+
+    if (toEmail && brevoMailer.transporter) {
+      try {
+        const info = await brevoMailer.transporter.sendMail({
+          from: '"Quick Money Security" <quick.moneey.in@gmail.com>',
+          to: String(toEmail).trim().toLowerCase(),
+          subject: '🛡️ Render Live SMTP Diagnostic',
+          text: 'Diagnostic test email from Render.',
+        });
+        sendResult = { messageId: info.messageId, accepted: info.accepted };
+      } catch (err) {
+        smtpDirectError = {
+          message: err.message,
+          code: err.code,
+          command: err.command,
+          response: err.response,
+          stack: err.stack,
+        };
+      }
     }
+
     return ResponseHandler.success(res, {
       service: 'gmail',
       user: process.env.EMAIL_USER || 'quick.moneey.in@gmail.com',
       transporterReady: isReady,
       sendResult,
+      smtpDirectError,
     }, 'Mail diagnostic check completed');
   } catch (error) {
     return ResponseHandler.error(res, error.message, 500);
