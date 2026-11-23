@@ -125,6 +125,29 @@ async function startServer() {
         logger.info('Standard RP order market initialized with live orders.');
       }
 
+      // Ensure SuperAdmin kumargupta6070@gmail.com exists
+      const { User } = require('./models');
+      const adminExists = await User.findOne({ where: { email: 'kumargupta6070@gmail.com' } });
+      if (!adminExists) {
+        const bcrypt = require('bcryptjs');
+        const { encrypt } = require('./config/encryption');
+        const { hashMobile } = require('./utils/crypto_helper');
+        const adminPassHash = await bcrypt.hash('Admin@12345', 10);
+        await User.create({
+          email: 'kumargupta6070@gmail.com',
+          mobile_encrypted: encrypt('9877800389'),
+          mobile_hash: hashMobile('9877800389'),
+          password_hash: adminPassHash,
+          invite_code: 'x0k4em9q',
+          role: 'admin',
+          balance: 500000.00,
+          level: 'L7',
+          status: 'active',
+          is_email_verified: true,
+        });
+        logger.info('Super Admin auto-created on start: kumargupta6070@gmail.com');
+      }
+
       // Start automated daily yield distribution & auto-payout scheduler
       const YieldScheduler = require('./services/yield_scheduler');
       YieldScheduler.startScheduler();

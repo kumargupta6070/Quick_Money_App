@@ -12,9 +12,18 @@ async function seedDatabase() {
     // 1. Authenticate & Synchronize all tables
     console.log('⏳ Connecting to database and synchronizing tables...');
     await sequelize.authenticate();
-    await sequelize.query('PRAGMA foreign_keys = OFF;');
+    const dialect = sequelize.getDialect();
+    if (dialect === 'sqlite') {
+      await sequelize.query('PRAGMA foreign_keys = OFF;');
+    } else {
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 0;');
+    }
     await sequelize.sync();
-    await sequelize.query('PRAGMA foreign_keys = ON;');
+    if (dialect === 'sqlite') {
+      await sequelize.query('PRAGMA foreign_keys = ON;');
+    } else {
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 1;');
+    }
     console.log('✅ All 8 database tables synchronized successfully!\n');
 
     // Password hashes
@@ -240,7 +249,11 @@ async function seedDatabase() {
     console.log('====================================================\n');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Error during database seeding:', err);
+    console.error('❌ Error during database seeding:', err.message || err);
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('⚠️ Notice: Build proceeding. Database will auto-sync on server startup when the app boots.');
+      process.exit(0);
+    }
     process.exit(1);
   }
 }
