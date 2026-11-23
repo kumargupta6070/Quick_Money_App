@@ -50,6 +50,8 @@ router.get('/mail-diagnostic', async (req, res) => {
 
     const detectedKeys = {
       hasBrevoApiKey: Boolean(process.env.BREVO_API_KEY),
+      brevoKeyPrefix: process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.substring(0, 8) + '...' : null,
+      brevoKeyLength: process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim().length : 0,
       hasBrevoKey: Boolean(process.env.BREVO_KEY),
       hasBrevoSmtpKey: Boolean(process.env.BREVO_SMTP_KEY),
       hasBrevoSmtpUser: Boolean(process.env.BREVO_SMTP_USER),
@@ -85,6 +87,33 @@ router.get('/mail-diagnostic', async (req, res) => {
       }
     }
 
+    let brevoSmtpTest = null;
+    if (toEmail && bKey) {
+      try {
+        const nodemailer = require('nodemailer');
+        const sUser = process.env.BREVO_SMTP_USER || process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER;
+        const testTransporter = nodemailer.createTransport({
+          host: 'smtp-relay.brevo.com',
+          port: 2525,
+          secure: false,
+          auth: {
+            user: sUser,
+            pass: bKey,
+          },
+          connectionTimeout: 5000,
+        });
+        const sInfo = await testTransporter.sendMail({
+          from: '"Quick Money" <' + sUser + '>',
+          to: toEmail,
+          subject: 'Brevo SMTP 2525 Test',
+          text: 'Test',
+        });
+        brevoSmtpTest = { success: true, messageId: sInfo.messageId };
+      } catch (e) {
+        brevoSmtpTest = { error: e.message, code: e.code };
+      }
+    }
+
     if (toEmail) {
       sendResult = await brevoMailer.sendOtpEmail({
         toEmail: String(toEmail).trim().toLowerCase(),
@@ -97,6 +126,7 @@ router.get('/mail-diagnostic', async (req, res) => {
       detectedKeys,
       transporterReady: isReady,
       brevoDirectTest,
+      brevoSmtpTest,
       sendResult,
     }, 'Mail diagnostic check completed');
   } catch (error) {
