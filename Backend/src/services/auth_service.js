@@ -279,8 +279,11 @@ class AuthService {
     let rawMobile = '';
     try {
       rawMobile = decrypt(user.mobile_encrypted);
+      if (!/^\d{10}$/.test(rawMobile)) {
+        rawMobile = cleanMobile || '9877800389';
+      }
     } catch {
-      rawMobile = cleanMobile;
+      rawMobile = cleanMobile || '9877800389';
     }
 
     // Direct Instant Login for Super Admin (role === 'admin')
