@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { User, Otp } = require('../models');
 const { encrypt, decrypt, hashPassword, comparePassword, hashMobile } = require('../utils/crypto_helper');
@@ -48,11 +49,11 @@ class AuthService {
       { where: { email: cleanEmail, is_used: false } }
     );
 
-    // 3. Generate 6-digit cryptographically random numerical code
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // 3. Generate 6-digit cryptographically secure numerical code
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // 4. Save in Database
+    // 4. Save in Database first
     await Otp.create({
       email: cleanEmail,
       otp_code: otpCode,
@@ -61,11 +62,13 @@ class AuthService {
       is_used: false,
     });
 
-    // 5. Send Light-Theme Luxury HTML Email via Brevo SMTP (or dev console fallback)
-    await brevoMailer.sendOtpEmail({
+    // 5. Send Light-Theme Luxury HTML Email via Brevo / Gmail SMTP in background
+    brevoMailer.sendOtpEmail({
       toEmail: cleanEmail,
       otp: otpCode,
       type,
+    }).catch(err => {
+      logger.error(`[AuthService] OTP email dispatch failure to ${cleanEmail}: ${err.message}`);
     });
 
     return {
@@ -84,11 +87,6 @@ class AuthService {
 
     if (!cleanEmail || !cleanOtp) {
       throw new Error('Email and OTP code are required.');
-    }
-
-    // Developer & Testing Universal Master OTP fallback (prevents user lockout)
-    if (cleanOtp === '123456' || cleanOtp === '999999') {
-      return { verified: true };
     }
 
     const whereClause = {
@@ -286,38 +284,17 @@ class AuthService {
       rawMobile = cleanMobile || '9877800389';
     }
 
-    // Direct Instant Login for Super Admin (role === 'admin')
-    if (user.role === 'admin') {
-      const token = signAccessToken({ id: user.id, role: user.role, level: user.level });
-      const refreshToken = signRefreshToken({ id: user.id });
-      return {
-        requiresOtp: false,
-        user: {
-          id: user.id,
-          mobile: rawMobile,
-          email: user.email,
-          invite_code: user.invite_code,
-          balance: user.balance,
-          level: user.level,
-          role: user.role,
-        },
-        token,
-        refreshToken,
-        message: 'Super Admin authenticated successfully',
-      };
-    }
-
     // Invalidate previous unused login OTPs for this user's email
     await Otp.update(
       { is_used: true },
       { where: { email: user.email, type: 'login', is_used: false } }
     );
 
-    // Generate 6-digit cryptographically random security OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit cryptographically secure security OTP
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Save in Database
+    // Save in Database first
     await Otp.create({
       email: user.email,
       otp_code: otpCode,
@@ -326,16 +303,14 @@ class AuthService {
       is_used: false,
     });
 
-    // Send real-time Email OTP via Brevo / Gmail SMTP (Resilient Non-blocking)
-    try {
-      await brevoMailer.sendOtpEmail({
-        toEmail: user.email,
-        otp: otpCode,
-        type: 'login',
-      });
-    } catch (mailErr) {
-      logger.warn(`Email OTP dispatch notice: ${mailErr.message}`);
-    }
+    // Send real-time Email OTP via Brevo / Gmail SMTP in background (Non-blocking)
+    brevoMailer.sendOtpEmail({
+      toEmail: user.email,
+      otp: otpCode,
+      type: 'login',
+    }).catch(mailErr => {
+      logger.error(`[AuthService] Login Email OTP dispatch failure to ${user.email}: ${mailErr.message}`);
+    });
 
     return {
       requiresOtp: true,

@@ -27,9 +27,9 @@ class BrevoMailerService {
         maxMessages: 100,
         rateDelta: 1000,
         rateLimit: 5,
-        connectionTimeout: 3500, // Max 3.5s to establish connection
-        greetingTimeout: 2500,   // Max 2.5s for greeting
-        socketTimeout: 4000,     // Max 4s socket timeout
+        connectionTimeout: 10000, // 10s to establish connection
+        greetingTimeout: 10000,   // 10s for greeting
+        socketTimeout: 15000,     // 15s socket timeout
         auth: { user, pass },
       });
 
@@ -259,20 +259,16 @@ class BrevoMailerService {
       // 1. High-Priority: Pooled High-Speed Gmail SMTP (Sub-2-second Instant Delivery)
       if (this.transporter) {
         try {
-          const sendPromise = this.transporter.sendMail({
+          const info = await this.transporter.sendMail({
             from: `"${fromName}" <${fromEmail}>`,
             to: toEmail,
             subject,
             html: htmlContent,
           });
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('SMTP timeout after 4s')), 4000)
-          );
-          const info = await Promise.race([sendPromise, timeoutPromise]);
           logger.info(`⚡ Instant Email OTP delivered to ${toEmail} via High-Speed Gmail SMTP (MessageId: ${info.messageId})`);
           return { success: true, messageId: info.messageId, mode: 'smtp_pool' };
         } catch (err) {
-          logger.error(`SMTP delivery error: ${err.message}. Trying backup delivery channel...`);
+          logger.error(`SMTP delivery error to ${toEmail}: ${err.message}. Trying backup delivery channel...`);
         }
       }
 
