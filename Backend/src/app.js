@@ -1,6 +1,7 @@
 const express = require('express');
 require('dns').setDefaultResultOrder('ipv4first');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -49,6 +50,10 @@ app.use(encryptionMiddleware);
 
 // Static file serving for downloads and public assets
 app.get('/downloads/quick-money.apk', (req, res) => {
+  const filePath = path.join(__dirname, '../public/downloads/quick-money.apk');
+  if (fs.existsSync(filePath)) {
+    return res.download(filePath, 'quick-money.apk');
+  }
   return res.redirect('https://quick-moneey.netlify.app/quick-money.apk');
 });
 app.use('/downloads', express.static(path.join(__dirname, '../public/downloads')));

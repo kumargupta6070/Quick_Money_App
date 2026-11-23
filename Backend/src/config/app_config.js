@@ -7,7 +7,7 @@ module.exports = {
   profitReturnThreshold: parseFloat(process.env.PROFIT_RETURN_THRESHOLD || '100.00'),
   jwt: {
     secret: process.env.JWT_SECRET || 'quick_money_secret_jwt',
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'quick_money_refresh_secret',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
@@ -63,10 +64,10 @@ class AdminReleaseNotifier extends Notifier<AppReleaseState> {
         final data = res.data as Map<String, dynamic>;
         state = state.copyWith(
           version: data['version']?.toString() ?? '1.0.0',
-          downloadUrl: data['downloadUrl']?.toString() ?? '',
-          releaseNotes: data['releaseNotes']?.toString() ?? '',
-          fileSize: data['fileSize']?.toString() ?? '28.4 MB',
-          isActive: data['isActive'] == true || data['isActive'] == 'true',
+          downloadUrl: (data['download_url'] ?? data['downloadUrl'] ?? '').toString(),
+          releaseNotes: (data['release_notes'] ?? data['releaseNotes'] ?? '').toString(),
+          fileSize: (data['file_size'] ?? data['fileSize'] ?? '65.9 MB').toString(),
+          isActive: data['is_active'] == true || data['isActive'] == true || data['is_active'] == 'true',
           isLoading: false,
         );
       } else {
@@ -91,9 +92,13 @@ class AdminReleaseNotifier extends Notifier<AppReleaseState> {
         ApiEndpoints.adminAppRelease,
         data: {
           'version': version,
+          'download_url': downloadUrl,
           'downloadUrl': downloadUrl,
+          'release_notes': releaseNotes,
           'releaseNotes': releaseNotes,
+          'file_size': fileSize,
           'fileSize': fileSize,
+          'is_active': isActive,
           'isActive': isActive,
         },
       );
@@ -107,6 +112,54 @@ class AdminReleaseNotifier extends Notifier<AppReleaseState> {
           isActive: isActive,
           isLoading: false,
           successMessage: 'APK release updated and synced live with website!',
+        );
+        return true;
+      } else {
+        state = state.copyWith(isLoading: false, errorMessage: res.message);
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  /// Direct APK binary upload by Super Admin
+  Future<bool> uploadApkFile({
+    required String filePath,
+    required String fileName,
+    String? version,
+    String? releaseNotes,
+    void Function(int sent, int total)? onProgress,
+  }) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null, successMessage: null);
+      final multipartFile = await MultipartFile.fromFile(
+        filePath,
+        filename: fileName,
+      );
+      final formData = FormData.fromMap({
+        'apk': multipartFile,
+        if (version != null && version.isNotEmpty) 'version': version,
+        if (releaseNotes != null && releaseNotes.isNotEmpty) 'release_notes': releaseNotes,
+      });
+
+      final res = await _apiClient.post(
+        ApiEndpoints.adminUploadApk,
+        data: formData,
+        onSendProgress: onProgress,
+      );
+
+      if (res.success && res.data != null) {
+        final data = res.data as Map<String, dynamic>;
+        state = state.copyWith(
+          version: data['version']?.toString() ?? version ?? state.version,
+          downloadUrl: (data['download_url'] ?? data['downloadUrl'] ?? 'https://quick-money-api.onrender.com/downloads/quick-money.apk').toString(),
+          fileSize: (data['file_size'] ?? data['fileSize'] ?? state.fileSize).toString(),
+          releaseNotes: (data['release_notes'] ?? data['releaseNotes'] ?? state.releaseNotes).toString(),
+          isActive: true,
+          isLoading: false,
+          successMessage: res.message ?? 'APK uploaded & synced live with website!',
         );
         return true;
       } else {

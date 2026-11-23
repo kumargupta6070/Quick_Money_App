@@ -36,10 +36,15 @@ class ApiClient {
   Future<ApiResponse<T>> post<T>(
     String path, {
     dynamic data,
+    void Function(int sent, int total)? onSendProgress,
     T Function(dynamic)? fromJson,
   }) async {
     try {
-      final response = await _dio.post(path, data: data);
+      final response = await _dio.post(
+        path,
+        data: data,
+        onSendProgress: onSendProgress,
+      );
       return ApiResponse.fromJson(response.data as Map<String, dynamic>, fromJson);
     } catch (e) {
       throw ApiErrorHandler.handleError(e);

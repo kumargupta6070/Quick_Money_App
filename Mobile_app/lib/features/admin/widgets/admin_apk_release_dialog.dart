@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/providers/admin_release_provider.dart';
 import '../../../core/utils/custom_loader.dart';
 import '../../../core/utils/custom_snackbar.dart';
+import 'admin_apk_upload_card.dart';
 
 class AdminApkReleaseDialog extends ConsumerStatefulWidget {
   const AdminApkReleaseDialog({super.key});
@@ -229,6 +230,24 @@ class _AdminApkReleaseDialogState extends ConsumerState<AdminApkReleaseDialog> {
                     ),
 
                     const SizedBox(height: 18),
+
+                    // Direct File Upload Card
+                    AdminApkUploadCard(
+                      isDark: isDark,
+                      onUploadComplete: ({
+                        required version,
+                        required fileSize,
+                        required downloadUrl,
+                      }) {
+                        setState(() {
+                          _versionCtrl.text = version;
+                          _sizeCtrl.text = fileSize;
+                          _urlCtrl.text = downloadUrl;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
 
                     // Version & Size Row
                     Row(

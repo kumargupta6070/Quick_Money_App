@@ -53,6 +53,7 @@ dependencies:
   
   # App package info
   package_info_plus: ^10.2.2
+  file_picker: ^13.4.1
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,40 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const AdminController = require('../controllers/admin_controller');
 const authMiddleware = require('../middleware/auth_middleware');
 const roleMiddleware = require('../middleware/role_middleware');
 
 const router = express.Router();
+
+// Multer storage for direct APK file uploads by Admin
+const downloadsDir = path.join(__dirname, '../../public/downloads');
+if (!fs.existsSync(downloadsDir)) {
+  fs.mkdirSync(downloadsDir, { recursive: true });
+}
+
+const apkStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, downloadsDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, 'quick-money.apk');
+  },
+});
+
+const uploadApk = multer({
+  storage: apkStorage,
+  limits: { fileSize: 250 * 1024 * 1024 }, // 250 MB max
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext === '.apk' || file.mimetype === 'application/vnd.android.package-archive') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only Android .apk files can be uploaded'));
+    }
+  },
+});
 
 // Protect all admin routes with JWT Auth + Admin Role Check
 router.use(authMiddleware);
@@ -56,6 +87,7 @@ router.post('/yields/trigger-cycle', AdminController.triggerYieldCycle);
 // 11. Dynamic APK Release Management for Website Landing Page
 router.get('/app-release', AdminController.getAppRelease);
 router.post('/app-release', AdminController.updateAppRelease);
+router.post('/upload-apk', uploadApk.single('apk'), AdminController.uploadApk);
 router.delete('/app-release', AdminController.deleteAppRelease);
 
 module.exports = router;

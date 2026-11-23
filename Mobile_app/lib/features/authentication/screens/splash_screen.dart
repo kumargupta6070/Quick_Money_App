@@ -1,35 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/animations/app_animations.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../shared/widgets/shared_design_widgets.dart';
 import '../widgets/splash_hero.dart';
 import '../widgets/splash_security_badge.dart';
 
 /// Next-Level, High-Impact, Animated Splash Screen for Quick Money.
 /// Clean, optimized, modular implementation utilizing shared design widgets.
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _progressController;
   late final Animation<double> _progressAnimation;
 
   String _statusText = 'Initializing Secure Core...';
+  bool _isSessionValid = false;
+  bool _isSessionAdmin = false;
 
   @override
   void initState() {
     super.initState();
+    _checkActiveSession();
 
-    // Extended 4.2 seconds duration so users can fully experience the splash screen
+    // Extended duration so users can fully experience the splash screen
     _progressController = AnimationController(
       vsync: this,
       duration: AppAnimations.splash,
@@ -45,12 +50,37 @@ class _SplashScreenState extends State<SplashScreen>
     _progressController.forward().then((_) {
       if (mounted) {
         Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
+          if (!mounted) return;
+          if (_isSessionValid) {
+            if (_isSessionAdmin) {
+              context.go('/admin/dashboard');
+            } else {
+              context.go('/home');
+            }
+          } else {
             context.go('/login');
           }
         });
       }
     });
+  }
+
+  Future<void> _checkActiveSession() async {
+    try {
+      final valid = await ref.read(authProvider.notifier).checkAndRestoreSession();
+      if (!mounted) return;
+      final auth = ref.read(authProvider);
+      setState(() {
+        _isSessionValid = valid;
+        _isSessionAdmin = auth.isAdmin;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isSessionValid = false;
+        });
+      }
+    }
   }
 
   void _onProgressTick() {
@@ -60,11 +90,13 @@ class _SplashScreenState extends State<SplashScreen>
     if (val < 0.28) {
       newStatus = 'Initializing Secure Core...';
     } else if (val < 0.60) {
-      newStatus = 'Verifying AES-256 Encryption...';
+      newStatus = 'Verifying 7-Day AES-256 Vault Session...';
     } else if (val < 0.88) {
-      newStatus = 'Connecting to RP Trading Engine...';
+      newStatus = _isSessionValid
+          ? (_isSessionAdmin ? 'Admin Authenticated! Restoring...' : 'Session Verified! Syncing Wallet...')
+          : 'Connecting to RP Trading Engine...';
     } else {
-      newStatus = 'Welcome to Quick Money!';
+      newStatus = _isSessionValid ? 'Welcome Back to Quick Money!' : 'Welcome to Quick Money!';
     }
 
     if (_statusText != newStatus) {

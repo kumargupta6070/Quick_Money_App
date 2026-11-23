@@ -33,6 +33,10 @@ router.get('/app-release', async (req, res) => {
     if (!parsed.download_url || parsed.download_url.includes('github.com/kumargupta6070/Quick_Money_App/releases')) {
       parsed.download_url = 'https://quick-moneey.netlify.app/quick-money.apk';
     }
+    parsed.downloadUrl = parsed.download_url || parsed.downloadUrl;
+    parsed.fileSize = parsed.file_size || parsed.fileSize;
+    parsed.releaseNotes = parsed.release_notes || parsed.releaseNotes;
+    parsed.isActive = parsed.is_active !== undefined ? parsed.is_active : parsed.isActive;
     return ResponseHandler.success(res, parsed, 'Latest APK release metadata');
   } catch (error) {
     return ResponseHandler.success(res, DEFAULT_RELEASE, 'Fallback release metadata');

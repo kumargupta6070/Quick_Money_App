@@ -985,13 +985,30 @@ class AdminController {
         version: '1.0.0',
         version_code: 1,
         download_url: 'https://quick-moneey.netlify.app/quick-money.apk',
+        downloadUrl: 'https://quick-moneey.netlify.app/quick-money.apk',
         file_size: '65.9 MB',
+        fileSize: '65.9 MB',
         release_notes: 'Official Public Release with PhonePe Auto-Return, Real Email OTP & AES-256 Vault',
+        releaseNotes: 'Official Public Release with PhonePe Auto-Return, Real Email OTP & AES-256 Vault',
         is_active: true,
+        isActive: true,
         sha256: 'f0ba78708848f62771f9fe367b735c2451a6932bc0734b4c809667134124eaac',
         updated_at: new Date().toISOString(),
       };
-      const release = setting ? JSON.parse(setting.value) : defaultRelease;
+      let release = defaultRelease;
+      if (setting && setting.value) {
+        try {
+          const parsed = JSON.parse(setting.value);
+          release = {
+            ...defaultRelease,
+            ...parsed,
+            downloadUrl: parsed.download_url || parsed.downloadUrl || defaultRelease.download_url,
+            fileSize: parsed.file_size || parsed.fileSize || defaultRelease.file_size,
+            releaseNotes: parsed.release_notes || parsed.releaseNotes || defaultRelease.release_notes,
+            isActive: parsed.is_active !== undefined ? parsed.is_active : defaultRelease.is_active,
+          };
+        } catch (_) {}
+      }
       return ResponseHandler.success(res, release, 'Active APK release metadata');
     } catch (err) {
       return ResponseHandler.error(res, err.message, 500);
@@ -1000,18 +1017,30 @@ class AdminController {
 
   static async updateAppRelease(req, res) {
     try {
-      const { version, version_code, download_url, file_size, release_notes, is_active, sha256 } = req.body;
-      if (!version || !download_url) {
-        return ResponseHandler.error(res, 'Version and download URL are required', 400);
+      const version = req.body.version || req.body.apkVersion;
+      const download_url = req.body.download_url || req.body.downloadUrl || 'https://quick-moneey.netlify.app/quick-money.apk';
+      const file_size = req.body.file_size || req.body.fileSize || '65.9 MB';
+      const release_notes = req.body.release_notes || req.body.releaseNotes || 'Latest Android APK release';
+      const is_active = req.body.is_active !== undefined ? req.body.is_active : (req.body.isActive !== undefined ? req.body.isActive : true);
+      const sha256 = req.body.sha256 || '';
+      const version_code = parseInt(req.body.version_code || req.body.versionCode || 1, 10);
+
+      if (!version) {
+        return ResponseHandler.error(res, 'APK Version is required', 400);
       }
+
       const releaseData = {
         version: String(version).trim(),
-        version_code: parseInt(version_code || 1, 10),
+        version_code: version_code,
         download_url: String(download_url).trim(),
-        file_size: file_size ? String(file_size).trim() : '28.4 MB',
-        release_notes: release_notes ? String(release_notes).trim() : 'Latest Android APK release',
-        is_active: is_active !== false,
-        sha256: sha256 ? String(sha256).trim() : '',
+        downloadUrl: String(download_url).trim(),
+        file_size: String(file_size).trim(),
+        fileSize: String(file_size).trim(),
+        release_notes: String(release_notes).trim(),
+        releaseNotes: String(release_notes).trim(),
+        is_active: Boolean(is_active),
+        isActive: Boolean(is_active),
+        sha256: String(sha256).trim(),
         updated_at: new Date().toISOString(),
       };
 
@@ -1031,7 +1060,82 @@ class AdminController {
         ip_address: req.ip,
       });
 
-      return ResponseHandler.success(res, releaseData, 'APK release published to landing page successfully');
+      return ResponseHandler.success(res, releaseData, 'Live APK release updated and synced with website successfully');
+    } catch (err) {
+      return ResponseHandler.error(res, err.message, 500);
+    }
+  }
+
+  static async uploadApk(req, res) {
+    try {
+      if (!req.file) {
+        return ResponseHandler.error(res, 'No APK file provided. Please attach a .apk file.', 400);
+      }
+
+      const crypto = require('crypto');
+      const fs = require('fs');
+      const path = require('path');
+
+      const filePath = req.file.path;
+      const fileSize = (req.file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+      // Calculate SHA256 checksum
+      const fileBuffer = fs.readFileSync(filePath);
+      const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+
+      // Detect version from form data, or original filename (e.g., app-release-1.0.1.apk -> 1.0.1)
+      let version = req.body.version || req.body.apkVersion;
+      if (!version) {
+        const match = req.file.originalname.match(/v?(\d+\.\d+(\.\d+)?)/i);
+        version = match ? match[1] : '1.0.1';
+      }
+
+      const downloadUrl = 'https://quick-money-api.onrender.com/downloads/quick-money.apk';
+      const releaseNotes = req.body.release_notes || req.body.releaseNotes || `Live Android APK release (v${version}) uploaded by Super Admin`;
+
+      const releaseData = {
+        version: String(version).trim(),
+        version_code: parseInt(req.body.version_code || 2, 10),
+        download_url: downloadUrl,
+        downloadUrl: downloadUrl,
+        file_size: fileSize,
+        fileSize: fileSize,
+        release_notes: releaseNotes,
+        releaseNotes: releaseNotes,
+        is_active: true,
+        isActive: true,
+        sha256: hash,
+        updated_at: new Date().toISOString(),
+      };
+
+      await SystemSetting.upsert({
+        key: 'app_apk_release',
+        value: JSON.stringify(releaseData),
+        description: 'Active Mobile App APK Download Configuration for Landing Page Website',
+      });
+
+      // Also sync to Website public directory if exists in workspace
+      try {
+        const websitePublicApk = path.join(__dirname, '../../../Website/public/quick-money.apk');
+        if (fs.existsSync(path.dirname(websitePublicApk))) {
+          fs.copyFileSync(filePath, websitePublicApk);
+        }
+      } catch (_) {}
+
+      await AuditLog.create({
+        admin_id: req.user.id,
+        action: 'UPLOAD_APP_RELEASE_APK',
+        target_type: 'SystemSetting',
+        target_id: 0,
+        details: JSON.stringify({ version, fileSize, hash, downloadUrl }),
+        ip_address: req.ip,
+      });
+
+      return ResponseHandler.success(
+        res,
+        releaseData,
+        `APK v${version} (${fileSize}) uploaded and synced with website successfully!`
+      );
     } catch (err) {
       return ResponseHandler.error(res, err.message, 500);
     }
@@ -1043,6 +1147,7 @@ class AdminController {
       if (setting) {
         const parsed = JSON.parse(setting.value);
         parsed.is_active = false;
+        parsed.isActive = false;
         parsed.updated_at = new Date().toISOString();
         await setting.update({ value: JSON.stringify(parsed) });
       }
