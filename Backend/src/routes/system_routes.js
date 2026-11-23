@@ -51,78 +51,11 @@ router.get('/mail-diagnostic', async (req, res) => {
     const detectedKeys = {
       hasBrevoApiKey: Boolean(process.env.BREVO_API_KEY),
       brevoKeyPrefix: process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.substring(0, 8) + '...' : null,
-      brevoKeyLength: process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim().length : 0,
-      hasBrevoKey: Boolean(process.env.BREVO_KEY),
-      hasBrevoSmtpKey: Boolean(process.env.BREVO_SMTP_KEY),
-      hasBrevoSmtpUser: Boolean(process.env.BREVO_SMTP_USER),
       hasBrevoFromEmail: Boolean(process.env.BREVO_FROM_EMAIL),
       hasResendApiKey: Boolean(process.env.RESEND_API_KEY),
       hasEmailUser: Boolean(process.env.EMAIL_USER),
       hasEmailPass: Boolean(process.env.EMAIL_APP_PASSWORD),
     };
-
-    let brevoDirectTest = null;
-    const bKey = (process.env.BREVO_API_KEY || process.env.BREVO_KEY || process.env.BREVO_SMTP_KEY)?.replace(/["'\s]/g, '');
-    if (toEmail && bKey) {
-      const fromEmail = (process.env.BREVO_FROM_EMAIL || process.env.EMAIL_USER || 'quick.moneey.in@gmail.com').replace(/["'\s]/g, '');
-      try {
-        const r = await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: {
-            'api-key': bKey,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            sender: { name: 'Quick Money Security', email: fromEmail },
-            to: [{ email: toEmail }],
-            subject: 'Quick Money Brevo Direct Test',
-            htmlContent: '<p>Test</p>',
-          }),
-        });
-        const d = await r.json().catch(() => ({}));
-        brevoDirectTest = { status: r.status, ok: r.ok, fromEmail, data: d };
-      } catch (e) {
-        brevoDirectTest = { error: e.message };
-      }
-    }
-
-    let brevoSmtpTest = null;
-    if (toEmail && bKey) {
-      const candidateUsers = [
-        process.env.BREVO_SMTP_USER,
-        'kumargupta6070@gmail.com',
-        'quick.moneey.in@gmail.com',
-        process.env.BREVO_FROM_EMAIL,
-        process.env.EMAIL_USER,
-      ].filter(Boolean);
-
-      for (const sUser of [...new Set(candidateUsers)]) {
-        try {
-          const nodemailer = require('nodemailer');
-          const testTransporter = nodemailer.createTransport({
-            host: 'smtp-relay.brevo.com',
-            port: 2525,
-            secure: false,
-            auth: {
-              user: sUser,
-              pass: bKey,
-            },
-            connectionTimeout: 5000,
-          });
-          const sInfo = await testTransporter.sendMail({
-            from: '"Quick Money" <' + sUser + '>',
-            to: toEmail,
-            subject: 'Brevo SMTP 2525 Test (' + sUser + ')',
-            text: 'Test OTP 782914',
-          });
-          brevoSmtpTest = { success: true, userUsed: sUser, messageId: sInfo.messageId };
-          break;
-        } catch (e) {
-          brevoSmtpTest = { lastAttemptedUser: sUser, error: e.message, code: e.code };
-        }
-      }
-    }
 
     if (toEmail) {
       sendResult = await brevoMailer.sendOtpEmail({
@@ -135,8 +68,6 @@ router.get('/mail-diagnostic', async (req, res) => {
     return ResponseHandler.success(res, {
       detectedKeys,
       transporterReady: isReady,
-      brevoDirectTest,
-      brevoSmtpTest,
       sendResult,
     }, 'Mail diagnostic check completed');
   } catch (error) {

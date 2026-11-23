@@ -27,9 +27,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _inviteController = TextEditingController(
-    text: 'w2XZyx',
-  ); // Default from client document
+  final _inviteController = TextEditingController(); // Optional, user can enter manually
   bool _agreedToTerms = true;
   bool _isLoading = false;
 

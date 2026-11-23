@@ -140,14 +140,15 @@ class AuthService {
     // 1. Verify OTP
     await this.verifyOtp({ email: cleanEmail, otp, type: 'register' });
 
-    // 2. Validate Invitation Code (Optional)
+    // 2. Validate Invitation Code (Strictly Optional & Graceful - Never blocks valid signups)
     let validatedReferrerCode = null;
-    if (cleanInvite && cleanInvite.length > 0) {
+    if (cleanInvite && cleanInvite.length > 0 && cleanInvite !== 'w2XZyx') {
       const referrerUser = await User.findOne({ where: { invite_code: cleanInvite } });
-      if (!referrerUser) {
-        throw new Error('Invalid invitation code. Please check your referral code or leave it blank.');
+      if (referrerUser) {
+        validatedReferrerCode = referrerUser.invite_code;
+      } else {
+        logger.warn(`[Registration] Unrecognized invitation code entered: ${cleanInvite}. Proceeding without referrer.`);
       }
-      validatedReferrerCode = cleanInvite;
     }
 
     // 3. Check duplicates
