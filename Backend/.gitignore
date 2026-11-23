@@ -22,3 +22,6 @@ logs/
 Thumbs.db
 .vscode/
 .idea/
+
+# Dynamic APK uploads (stored on server, not committed)
+public/downloads/*.apk

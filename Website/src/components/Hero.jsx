@@ -62,7 +62,7 @@ export default function Hero({ release, onDownload, onDownloadClick }) {
             <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 text-xs text-slate-400 font-medium">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Size: {release?.file_size || '28.4 MB'}
+                Size: {release?.fileSize || release?.file_size || '65.9 MB'}
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />

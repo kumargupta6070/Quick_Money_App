@@ -108,7 +108,7 @@ export default function ApkDownloadHub({ release, onDownloadClick }) {
                   What's New in v{release?.version || '1.0.0'}:
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  {release?.releaseNotes || 'Initial production release with instant PhonePe payouts, 2-step OTP email verification, L1-L5 liquidity pools, AES-256 vault encryption, and 24/7 helpdesk.'}
+                  {release?.releaseNotes || release?.release_notes || 'Initial production release with instant PhonePe payouts, 2-step OTP email verification, L1-L5 liquidity pools, AES-256 vault encryption, and 24/7 helpdesk.'}
                 </p>
               </div>
             </div>
